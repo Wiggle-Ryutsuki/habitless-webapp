@@ -6,6 +6,7 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!user) return null;
 
@@ -16,68 +17,80 @@ export const Header: React.FC = () => {
 
   const isParticipant = user.role === 'PARTICIPANT';
 
-  return (
-    <header style={{
-      backgroundColor: 'var(--color-surface)',
-      borderBottom: '1px solid var(--papaya-whip)',
-      padding: '0 1.5rem',
-      height: '64px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    }}>
-      {/* Brand & Desktop Nav */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <Link to={isParticipant ? '/dashboard' : '/manager'} style={{
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          color: 'var(--walnut)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          textDecoration: 'none',
-        }}>
-          HabitLess
-        </Link>
+  const triggerUnderConstruction = () => {
+    setToastMessage('Dashboard is still under construction');
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
 
-        {/* Desktop Navigation Links */}
-        <nav className="desktop-nav" style={{ display: 'flex', gap: '1rem' }}>
-          {isParticipant ? (
-            <>
-              <Link to="/dashboard" style={{
+  return (
+    <>
+      <header style={{
+        backgroundColor: 'var(--color-surface)',
+        borderBottom: '1px solid var(--papaya-whip)',
+        padding: '0 1.5rem',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}>
+        {/* Brand & Desktop Nav */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <Link to={isParticipant ? '/calendar' : '/manager'} style={{
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: 'var(--walnut)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            textDecoration: 'none',
+          }}>
+            HabitLess
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav className="desktop-nav" style={{ display: 'flex', gap: '1rem' }}>
+            {isParticipant ? (
+              <>
+                <Link to="/calendar" style={{
+                  color: 'var(--walnut)',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.9375rem',
+                  fontWeight: 600,
+                }}>
+                  Habit Calendar
+                </Link>
+                <Link
+                  to="/dashboard"
+                  onClick={triggerUnderConstruction}
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <Link to="/manager" style={{
                 color: 'var(--walnut)',
                 padding: '0.5rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.9375rem',
                 fontWeight: 600,
               }}>
-                Today's Checklist
+                Programs
               </Link>
-              <Link to="/calendar" style={{
-                color: 'var(--color-text-muted)',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '6px',
-                fontSize: '0.9375rem',
-                fontWeight: 500,
-              }}>
-                Habit Calendar
-              </Link>
-            </>
-          ) : (
-            <Link to="/manager" style={{
-              color: 'var(--walnut)',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '6px',
-              fontSize: '0.9375rem',
-              fontWeight: 600,
-            }}>
-              Programs
-            </Link>
-          )}
-        </nav>
+            )}
+          </nav>
       </div>
 
       {/* Desktop User Info & Logout */}
@@ -194,18 +207,21 @@ export const Header: React.FC = () => {
               {isParticipant ? (
                 <>
                   <Link
-                    to="/dashboard"
+                    to="/calendar"
                     onClick={() => setMobileMenuOpen(false)}
                     style={{ padding: '8px 0', fontWeight: 600, color: 'var(--walnut)' }}
                   >
-                    Today's Checklist
+                    Habit Calendar
                   </Link>
                   <Link
-                    to="/calendar"
-                    onClick={() => setMobileMenuOpen(false)}
+                    to="/dashboard"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      triggerUnderConstruction();
+                    }}
                     style={{ padding: '8px 0', color: 'var(--color-text-muted)' }}
                   >
-                    Habit Calendar
+                    Dashboard
                   </Link>
                 </>
               ) : (
@@ -249,6 +265,49 @@ export const Header: React.FC = () => {
         }
       `}</style>
     </header>
+
+    {/* Floating Toast Notification */}
+    {toastMessage && (
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          top: '76px',
+          right: '1.5rem',
+          backgroundColor: 'var(--walnut)',
+          color: '#ffffff',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '8px',
+          boxShadow: '0 8px 24px rgba(114, 67, 25, 0.25)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          fontSize: '0.9375rem',
+          fontWeight: 600,
+        }}
+      >
+        <span>🚧 {toastMessage}</span>
+        <button
+          onClick={() => setToastMessage(null)}
+          aria-label="Dismiss notification"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#ffffff',
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: '1rem',
+            padding: '0 4px',
+            lineHeight: 1,
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    )}
+    </>
   );
 };
 

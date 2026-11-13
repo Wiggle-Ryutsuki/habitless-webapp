@@ -1,8 +1,8 @@
 # HabitLess Sprint 1 Engineering Specification
 
 **Document ID**: SPEC-HL-01  
-**Version**: 1.4  
-**Status**: Approved Architecture & Specification Baseline (Strict MVP Scope)  
+**Version**: 1.5  
+**Status**: Approved Architecture & Specification Baseline (Strict MVP Scope - Unified Habit Calendar Architecture)  
 **Method**: Spec-Driven Development (SDD)  
 **Parent Project**: HabitLess - Habit and Activity Tracking System  
 **Source Brief Reference**: `HabitLess App Design: Habit and Activity Tracking System (pp. 1–5)`  
@@ -13,7 +13,7 @@
 ## 1. Sprint Goal
 
 Deliver a responsive, cloud-ready, end-to-end Minimum Viable Product (MVP) of **HabitLess** (Habit and Activity Tracking System) strictly focused on the **High Priority / Low Effort [MVP]** requirements defined in `HabitLess App Design` (`_lab5_sec31_habitless.pdf`):
-* **Participants** can register (Sign up), log in/out, create customizable habits with 8 selectable fixed habit colors (`--blue-energy`, `--ocean-deep`, `--verdigris`, `--yellow-green`, `--amber-gold`, `--amber-glow`, `--cinnabar`, `--cherry-rose`), define target frequencies and dates, view a daily checklist of today's assigned habits and activities with completion toggles, view and interact with the monthly Daily Habit Tracker Calendar desktop (tracking daily completions and editing habits in-calendar), monitor their Goals Tracker (target count vs. achieved count), and add timestamped reflection notes.
+* **Participants** can register (Sign up), log in/out, create customizable habits with 8 selectable fixed habit colors (`--blue-energy`, `--ocean-deep`, `--verdigris`, `--yellow-green`, `--amber-gold`, `--amber-glow`, `--cinnabar`, `--cherry-rose`), define target frequencies and dates, and interact with the unified **Habit Calendar** (`/calendar`) as their primary page (featuring a side list of daily habits appearing for that day, a top date header that lights up which column/day is editable to check habits, interactive color-coded checkmarks matching each habit's color, in-calendar habit editing, and timestamped reflection notes). The **Dashboard** (`/dashboard`) serves as an under-construction placeholder displaying a notification popup stating *"Dashboard is still under construction"*.
 * **Program Managers** can create challenge programs with defined start/end dates (e.g., "30-Day Wellness Challenge"), define standardized habits/activities with clear titles, descriptions, and target frequencies (e.g., Daily, 3x/week, Weekdays only), and deploy/publish challenge programs to the web to invite participants.
 
 All features categorized under **High Priority / High Effort**, **Low Priority / Low Effort**, or **Low Priority / High Effort** are explicitly deferred to post-Sprint 1.
@@ -22,18 +22,20 @@ All features categorized under **High Priority / High Effort**, **Low Priority /
 
 ## 2. Stakeholder Request Interpretation & Role Context
 
-From the stakeholder brief (`HabitLess App Design`, pp. 1, 3–5) and updated color specification:
+From the stakeholder brief (`HabitLess App Design`, pp. 1, 3–5) and updated color & layout specification:
 * **Participant Journey (MVP Scope)**:
-  * Simple account sign up and secure login/logout.
-  * Today's checklist view displaying today's assigned habits and activities with instant completion toggles.
+  * Simple account sign up and secure login/logout, routing by default directly to the **Habit Calendar** (`/calendar`).
+  * Participants have two primary pages in their navigation shell:
+    1. **Habit Calendar (`/calendar`)** [Active Primary Interface]:
+       * Unifies daily habit tracking with the full monthly calendar desktop matrix (`HabitLess App Design`, p. 3). Daily habits and the habit calendar desktop are **not separate pages**.
+       * **Header & Top Date Indicator**: Top date header lights up / illuminates which column/day is active and editable to check habits.
+       * **Side Daily Habits List (Left Column, `HABITS`)**: Vertical list of daily habits scheduled for the active date, displaying habit titles, assigned color indicators, frequency labels, and inline `[Edit]` triggers.
+       * **Calendar Desktop Grid (`1–31`)**: Shows all days of the week/month labeled with day-of-week initials (`M T W T F S S`) and day numbers, where checkmarks can be toggled directly in the illuminated active day column.
+       * **Right Column (`GOAL ACHIEVED`)**: Displays each habit's target count alongside its achieved completion count (e.g., `20 / 19`).
+       * **Notes Section**: Located below the calendar grid with timestamped reflection entries and a `+ New Note` action.
+    2. **Dashboard (`/dashboard`)** [Under Construction Placeholder]:
+       * Not yet implemented in Sprint 1 MVP. Clicking "Dashboard" in the navigation bar or accessing `/dashboard` triggers a popup notification stating: *"Dashboard is still under construction"*.
   * Customizable habit creation: Name, Description, Fixed habit colors (8 vibrant habit palette tokens distinct from website theme tokens), Frequency (every certain day, monthly, weekly), and Start-end dates.
-  * **Daily Habit Tracker Calendar Desktop** (`HabitLess App Design`, p. 3):
-    * Header bar with month/year navigation (`< March 2021 >`), user account indicator, and `+ New Habit` button.
-    * Left column (`HABITS`): Vertical list of tracked habits with in-calendar habit editing.
-    * Center grid (`1–31`): Daily columns labeled with day-of-week initials (`M T W T F S S`) and day numbers, containing interactive color-coded checkmarks matching each habit's assigned color.
-    * Right column (`GOAL ACHIEVED`): Displays each habit's target count alongside its achieved completion count (e.g., `20 / 19`).
-    * Notes section: Located below the calendar grid with timestamped reflection entries and a `+ New Note` action.
-  * Goals tracker: Tracking goal achievement counts versus target counts per habit.
 * **Program Manager Journey (MVP Scope)**:
   * Create challenge programs with defined start and end dates (e.g., "30-Day Wellness Challenge").
   * Define standard curriculum habits/activities with clear titles, descriptions, and target frequencies (Daily, 3x/week, Weekdays only).
@@ -52,14 +54,15 @@ Sprint 1 is strictly partitioned into **four modular feature increments** mapped
    * Account login and logout.
    * Secure session management (HTTP-only JWT cookies) and password hashing (bcrypt).
    * Health probe (`GET /api/health`) and database readiness check (`GET /api/ready`).
-2. **Feature 2: Participant Habit Creation & Today's Checklist (`feature/2-habit-checklist`)**
+2. **Feature 2: Custom Habit Creation & Habit Calendar Integration (`feature/2-habit-checklist`)**
    * Customizable habit creation (Name, Description, Fixed habit colors, Frequency, Start-End Date, Target Count).
    * Fixed habit color restriction: 8 selectable habit colors (`--blue-energy`, `--ocean-deep`, `--verdigris`, `--yellow-green`, `--amber-gold`, `--amber-glow`, `--cinnabar`, `--cherry-rose`).
-   * Today's checklist view of assigned habits and activities for the current date.
+   * Side daily habits list and top date indicator lighting up the active editable day column for habit checking (`GET /api/tracking/today`, `POST /api/tracking/log`).
    * Idempotent daily completion logging (check / uncheck toggle).
-3. **Feature 3: Daily Habit Tracker Calendar Desktop, In-Calendar Edit & Goals Tracker (`feature/3-calendar-goals`)**
+   * Participant navigation shell with "Habit Calendar" (landing view) and "Dashboard" (triggers "Dashboard is still under construction" notification).
+3. **Feature 3: Daily Habit Tracker Calendar Desktop Grid, In-Calendar Edit & Goals Tracker (`feature/3-calendar-goals`)**
    * Daily habit tracking calendar desktop matrix (Habits on rows, days 1–31 as columns with day-of-week initials, matching `HabitLess App Design`, p. 3).
-   * In-calendar daily tracking toggles (interactive color-coded checkmarks using each habit's distinct color).
+   * In-calendar daily tracking toggles across past/current days (interactive color-coded checkmarks using each habit's distinct color).
    * In-calendar habit editing (updating habit name, description, color, frequency, dates, target count).
    * Goals tracker: Displaying each habit's target count alongside its achieved completion count (e.g., `20 / 19`).
    * Notes section below the calendar grid with timestamped reflection entries and a `+ New Note` action.
@@ -78,7 +81,7 @@ To guarantee a focused, high-quality, working bare-minimum app, all features out
   * Completion Calendar / Heatmap (a monthly or weekly grid showing completed vs. missed days at a glance) (`HabitLess App Design`, p. 4).
   * Statistics per habit (`HabitLess App Design`, p. 4).
   * Total Habits done: Program Completion Bar (`HabitLess App Design`, p. 4).
-  * Page with habits from calendar separate (`HabitLess App Design`, p. 4; habit viewing and editing is handled unified within the Daily Calendar and Today's Checklist).
+  * Page with habits from calendar separate (`HabitLess App Design`, p. 4; habit viewing, daily habits list, and calendar tracking are unified on the Habit Calendar `/calendar`; a separate standalone habit management page is deferred).
   * See new challenge packages (posted by program manager) (this is a new page) (`HabitLess App Design`, p. 4; full participant marketplace discovery catalog is deferred; MVP supports direct invitation link via web deploy).
   * Statistics of which challenges are popular and which category is popular (`HabitLess App Design`, p. 5).
   * View active roster and remove/deactivate participants if needed (`HabitLess App Design`, p. 5).
@@ -105,11 +108,11 @@ To guarantee a focused, high-quality, working bare-minimum app, all features out
 | **FR-04** | Habit Creation | The system shall allow a Participant to create a custom habit specifying Name, Description, Fixed habit color, Frequency rule, Start–end dates, and Target Count. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 4 |
 | **FR-05** | Fixed Habit Colors | The habit creation interface shall restrict habit color choices strictly to the 8 fixed habit palette colors: Blue Energy (`#448aff`), Ocean Deep (`#1565c0`), Verdigris (`#009688`), Yellow Green (`#8bc34a`), Amber Gold (`#ffc107`), Amber Glow (`#ff9800`), Cinnabar (`#f44336`), and Cherry Rose (`#ad1457`). | High / Low [MVP] | User Palette Specification |
 | **FR-06** | Habit Frequency | The system shall support habit frequencies: Daily, Certain Days of the Week (e.g., Weekdays, 3x/week), Weekly, and Monthly. | High / Low [MVP] | `HabitLess App Design`, pp. 4, 5 |
-| **FR-07** | Today Checklist | The Participant dashboard shall display a daily checklist of assigned habits and activities scheduled for the current date, indicating completed vs. pending items. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 4 |
-| **FR-08** | Habit Logging | The system shall allow a Participant to toggle (check/uncheck) a habit for a given date, creating or deleting a completion record in the database idempotently. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
-| **FR-09** | Calendar Desktop | The system shall provide a Daily Habit Tracker Calendar desktop displaying habits as rows and month days (1–31) as columns labeled with day-of-week initials (M T W T F S S), with interactive color-coded checkmarks matching each habit's color. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
+| **FR-07** | Unified Habit Calendar | The system shall provide a unified Habit Calendar (`/calendar`) as the primary participant view, displaying the list of daily habits on the side of the calendar and a top date header that lights up which column/day is editable to check habits. The Dashboard (`/dashboard`) is under construction and shall display a notification stating "still under construction". | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
+| **FR-08** | Habit Logging | The system shall allow a Participant to toggle (check/uncheck) a habit for a given date directly within the illuminated active column of the Habit Calendar, creating or deleting a completion record in the database idempotently. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
+| **FR-09** | Calendar Desktop | The system shall provide a Daily Habit Tracker Calendar desktop displaying the daily habits list on the side, a top date header that illuminates the editable column for the current date, month days (1–31) as columns labeled with day-of-week initials (M T W T F S S), interactive color-coded checkmarks matching each habit's color, and goal progress. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
 | **FR-10** | In-Calendar Edit | The system shall allow participants to select and edit an existing habit's details (Name, Description, Color, Frequency, Dates, Target Count) directly from the calendar desktop view. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3 |
-| **FR-11** | Goals Tracker | The system shall display each habit's target count alongside its achieved completion count (e.g., `20 / 19`) in the right column of the calendar grid and dashboard summary. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
+| **FR-11** | Goals Tracker | The system shall display each habit's target count alongside its achieved completion count (e.g., `20 / 19`) in the right column of the calendar grid. | High / Low [MVP] | `HabitLess App Design`, pp. 1, 3, 4 |
 | **FR-12** | Calendar Notes | The system shall provide a Notes section located below the calendar grid displaying timestamped reflection entries and a `+ New Note` action. | High / Low [MVP] | `HabitLess App Design`, p. 3 |
 | **FR-13** | Program Creation | The system shall allow a Program Manager to create challenge programs specifying a program title, description, category, and defined start/end dates (e.g., "30-Day Wellness Challenge"). | High / Low [MVP] | `HabitLess App Design`, pp. 1, 5 |
 | **FR-14** | Activity Definition | The system shall allow a Program Manager to define standardized habits/activities within a program, specifying titles, descriptions, and target frequencies (e.g., Daily, 3x/week, Weekdays only). | High / Low [MVP] | `HabitLess App Design`, p. 5 |
@@ -376,7 +379,7 @@ Detailed payloads are documented in [`docs/sprint-01/api-spec.md`](file:///c:/Us
 * **AC-01 (User Registration & Role-Based Routing)**:  
   *Given* an unregistered email address,  
   *When* a user submits the Sign Up form with valid name, password, and selects their role (`PARTICIPANT` or `PROGRAM_MANAGER`),  
-  *Then* a new user is created in PostgreSQL with the chosen role, `isActive = true`, an authenticated session cookie is established, and the user is routed to their corresponding role view (`/dashboard` for Participant, `/manager` for Program Manager, or internal `redirect` destination).
+  *Then* a new user is created in PostgreSQL with the chosen role, `isActive = true`, an authenticated session cookie is established, and the user is routed to their corresponding role view (`/calendar` for Participant, `/manager` for Program Manager, or internal `redirect` destination).
 * **AC-02 (Authentication & Role Redirection)**:  
   *Given* a registered user with role `PROGRAM_MANAGER`,  
   *When* valid credentials are submitted on the login screen,  
@@ -384,19 +387,19 @@ Detailed payloads are documented in [`docs/sprint-01/api-spec.md`](file:///c:/Us
 * **AC-03 (Custom Habit Creation with Fixed Habit Color)**:  
   *Given* an authenticated Participant on the "+ New Habit" modal,  
   *When* they submit a habit with Title "Journal", Frequency "DAILY", Target Count 20, and Color `#ff9800` (Amber Glow),  
-  *Then* the habit is created in PostgreSQL and immediately appears in their Today's Checklist and Daily Habit Tracker Calendar with Amber Glow color styling.
+  *Then* the habit is created in PostgreSQL and immediately appears in their side habits list on the Habit Calendar (`/calendar`) with Amber Glow color styling.
 * **AC-04 (Habit Palette Color Rejection)**:  
   *Given* a habit creation request containing an arbitrary color `#9C27B0` outside the 8 fixed habit palette colors,  
   *When* the API receives the payload,  
   *Then* the request is rejected with HTTP 422 Unprocessable Entity and an error indicating valid habit palette tokens.
-* **AC-05 (Today's Checklist Display & Completion Toggle)**:  
+* **AC-05 (Today's Daily Habit Display & Illuminated Column Toggle)**:  
   *Given* an active habit scheduled for today with assigned color `#009688` (Verdigris),  
-  *When* the Participant clicks the checklist checkbox for that habit,  
-  *Then* an idempotent `HabitLog` entry is saved for `(habitId, today)`, the checkbox turns `#009688` with a checkmark `✓`, and today's completion count increments.
-* **AC-06 (Daily Habit Tracker Calendar Desktop Rendering)**:  
-  *Given* a participant with active habits and logged completions for March 2026,  
-  *When* the Participant views the Daily Habit Tracker Calendar desktop,  
-  *Then* the monthly matrix correctly renders habit rows, days 1–31 columns labeled with day-of-week initials (`M T W T F S S`), color-coded checkmarks using each habit's assigned color, and the Right Column displays target count alongside achieved completion count (e.g., `20 / 19`).
+  *When* the Participant views the Habit Calendar (`/calendar`),  
+  *Then* the habit appears in the side habits list, the current day column lights up on top as the active editable column, clicking the cell in the illuminated column toggles completion, saving an idempotent `HabitLog` entry for `(habitId, today)`, and the cell displays `#009688` with a checkmark `✓`.
+* **AC-06 (Habit Calendar Desktop Rendering & Dashboard Under Construction Notification)**:  
+  *Given* an authenticated Participant on the Habit Calendar (`/calendar`),  
+  *When* the Participant views the desktop calendar,  
+  *Then* the monthly matrix correctly renders the side habits list, days 1–31 columns labeled with day-of-week initials (`M T W T F S S`), the top date header illuminating today's editable column, color-coded checkmarks using each habit's assigned color, and the Right Column displays target count alongside achieved completion count (e.g., `20 / 19`). Furthermore, clicking the "Dashboard" navigation link triggers a popup notification stating "Dashboard is still under construction".
 * **AC-07 (In-Calendar Habit Editing)**:  
   *Given* an existing habit displayed on the calendar desktop,  
   *When* the Participant clicks "Edit" on the habit row, updates the habit title or color, and saves,  
@@ -439,24 +442,25 @@ graph TD
   * Sign Up and Login UI views using HabitLess theme tokens.
   * Seed script (`server/prisma/seed.ts`).
 
-#### Issue #2: Custom Habit Creation & Today's Checklist
+#### Issue #2: Custom Habit Creation & Habit Calendar Integration
 * **Branch**: `feature/2-habit-checklist`
 * **Dependencies**: Issue #1 merged into `staging`.
 * **Scope**:
   * Prisma schema addition: `Habit` model with `FrequencyType`, 8 fixed habit color tokens, and target count.
   * Habit CRUD endpoints (`/api/habits`).
   * Daily checklist endpoint (`GET /api/tracking/today`) and idempotent logging endpoint (`POST /api/tracking/log`).
-  * Participant Today's Checklist UI with completion toggles and completion count.
+  * Unified Habit Calendar view (`/calendar`): side daily habits list, top date header illuminating today's editable column, and idempotent daily check toggles.
+  * Participant navigation shell with "Habit Calendar" (landing route) and "Dashboard" (triggers "Dashboard is still under construction" notification).
   * "+ New Habit" modal form with 8 fixed habit color swatches, frequency selector, and dates.
 
-#### Issue #3: Daily Habit Tracker Calendar Desktop, In-Calendar Edit & Goals Tracker
+#### Issue #3: Daily Habit Tracker Calendar Desktop Grid, In-Calendar Edit & Goals Tracker
 * **Branch**: `feature/3-calendar-goals`
 * **Dependencies**: Issue #2 merged into `staging`.
 * **Scope**:
   * Prisma schema addition: `DailyNote` model for reflection entries.
   * Calendar endpoint `/api/tracking/calendar` (1–31 days matrix) and `/api/tracking/goals`.
   * Reflection notes endpoints (`GET /api/tracking/notes`, `POST /api/tracking/notes`).
-  * Daily Habit Tracker Calendar Desktop matrix (habits as rows, days 1–31 as columns with day-of-week initials, checkmark cells in habit colors).
+  * Complete 31-day desktop grid matrix enabling logging across all past/future days of the month.
   * In-calendar habit edit modal.
   * Right column Goals Tracker (target count vs. achieved count, e.g. `20 / 19`).
   * Notes section below calendar grid with timestamped reflection entries and `+ New Note` action.

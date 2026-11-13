@@ -20,6 +20,7 @@ server/prisma/*.db
 # lab files
 *docs/sprint-01/_lab5_sec31_habitless.pdf
 *sprint-01/_lab5_sec31_habitless.pdf
+docs/features/
 
 # test output
 test-results/

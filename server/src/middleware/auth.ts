@@ -60,14 +60,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export function requireRole(allowedRoles: Role[]) {
+export function requireRole(allowedRoles: Role[], errorCode = 'FORBIDDEN') {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError(401, 'UNAUTHORIZED', 'Authentication is required.'));
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return next(new AppError(403, 'FORBIDDEN', 'Access denied: insufficient permissions.'));
+      return next(new AppError(403, errorCode, 'Access denied: insufficient permissions.'));
     }
 
     next();

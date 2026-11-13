@@ -67,7 +67,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         if (redirectParam && redirectParam.startsWith('/')) {
           navigate(redirectParam);
         } else {
-          navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/dashboard');
+          navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/calendar');
         }
       } else {
         const user = await register({
@@ -79,7 +79,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         if (redirectParam && redirectParam.startsWith('/')) {
           navigate(redirectParam);
         } else {
-          navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/dashboard');
+          navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/calendar');
         }
       }
     } catch (err) {
