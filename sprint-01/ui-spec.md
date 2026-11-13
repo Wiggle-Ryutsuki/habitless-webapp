@@ -1,8 +1,8 @@
 # HabitLess UI Design Specification
 
 **Document ID**: UI-SPEC-HL-01  
-**Version**: 1.4  
-**Status**: Approved Design Baseline (Strict MVP Scope)  
+**Version**: 1.5  
+**Status**: Approved Design Baseline (Strict MVP Scope - Unified Habit Calendar Architecture)  
 **Parent Project**: HabitLess - Habit and Activity Tracking System  
 **Source Brief Reference**: `HabitLess App Design: Habit and Activity Tracking System (pp. 1–5)`  
 **Scope Boundary**: Strictly High Priority / Low Effort [MVP] Features Only  
@@ -91,42 +91,50 @@ Used strictly for habit cards, habit swatch selection in creation/edit modals, c
 
 ## 3. UI Layout Reference (Daily Habit Tracker Calendar)
 
-The Participant Daily Habit Tracker Calendar desktop interface is modeled directly on the design mockup (`HabitLess App Design`, p. 3) with vibrant individual habit colors:
+The Participant Daily Habit Tracker Calendar desktop interface is modeled directly on the design mockup (`HabitLess App Design`, p. 3) with vibrant individual habit colors. The daily habits and the habit calendar desktop are **not separate pages**; they are unified into a single screen where the daily habits appear on the side of the calendar, and a top date indicator lights up which column/day is active and editable for checking habits:
 
 ```
-+-----------------------------------------------------------------------------------------------------------------------+
-|  HabitLess   [ < March 2021 > ]                             demo@dailyhabits.xyz                  [ + New Habit ]     |
-+-----------------------------------------------------------------------------------------------------------------------+
-|  HABITS                 M  T  W  T  F  S  S  M  T  W  T  F  S  S ... 26 27 28 29 30 31          GOAL ACHIEVED         |
-|                         1  2  3  4  5  6  7  8  9 10 11 12 13 14 ...                                                  |
-|-----------------------------------------------------------------------------------------------------------------------|
-|  Journal         [Edit] [✓][✓][✓][ ][✓][✓][✓][ ][✓][✓] ...                 [✓][ ][ ] ...         20   [ 19 ]          |
-|  Exercise        [Edit] [✓][ ][✓][ ][✓][ ][✓][ ][ ][✓] ...                 [ ][✓][ ] ...         20   [ 14 ]          |
-|  Bathe+Moisturize[Edit] [✓][✓][✓][✓][ ][✓][✓][✓][✓][✓] ...                 [✓][✓][ ] ...         25   [ 19 ]          |
-|  Eat healthy bkf [Edit] [✓][✓][✓][✓][✓][✓][✓][✓][✓][✓] ...                 [✓][✓][✓] ...         20   [ 20 ]          |
-|  No alcohol      [Edit] [✓][✓][✓][✓][ ][✓][✓][✓][✓][✓] ...                 [✓][✓][✓] ...         20   [ 20 ]          |
-|  No sugar        [Edit] [✓][✓][ ][✓][✓][✓][✓][ ][✓][✓] ...                 [✓][✓][ ] ...         20   [ 16 ]          |
-|  Eat light dinner[Edit] [✓][✓][✓][ ][✓][✓][✓][ ][✓][✓] ...                 [✓][✓][✓] ...         20   [ 21 ]          |
-|  Sleep 7.5 hrs   [Edit] [ ][✓][ ][ ][✓][ ][ ][✓][ ][ ] ...                 [✓][✓][ ] ...         25   [ 11 ]          |
-+-----------------------------------------------------------------------------------------------------------------------+
-|  Notes                                                                                           [ + New Note ]       |
-|  -------------------------------------------------------------------------------------------------------------------  |
-|  18 March 2021 at 9:00 pm                                                                                             |
-|  I gotta make sure I don't let my alcohol intake get regular again.                                                   |
-|                                                                                                                       |
-|  17 March 2021 at 9:00 pm                                                                                             |
-|  Great workout today, feeling energetic.                                                                              |
-+-----------------------------------------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------------------------------+
+|  HabitLess    [ Habit Calendar ]  [ Dashboard ]        [ < March 2021 > ]             demo@dailyhabits.xyz      [ + New Habit ] |
++---------------------------------------------------------------------------------------------------------------------------------+
+|  DATE:  Thu, 18 March 2021  (Column 18 is active & editable to check habits)                                                    |
++---------------------------------------------------------------------------------------------------------------------------------+
+|  DAILY HABITS (Today)   |  M  T  W  T  F  S  S ...   W   [T*]  F   S   S ... 29 30 31          |  GOAL ACHIEVED             |
+|  (Side List for Day)    |  1  2  3  4  5  6  7 ...  17  [18*] 19  20  21 ... 29 30 31          |                            |
+|-------------------------+----------------------------------------------------------------------+----------------------------|
+|  [■] Journal     [Edit] | [✓][✓][✓][ ][✓][✓][✓] ... [✓] [✓*] [ ] [✓] [✓] ... [ ][ ]             |   20   [ 19 ]              |
+|  [■] Exercise    [Edit] | [✓][ ][✓][ ][✓][ ][✓] ... [✓] [ *] [✓] [ ] [ ] ... [✓][ ]             |   20   [ 14 ]              |
+|  [■] Bathe+Moist [Edit] | [✓][✓][✓][✓][ ][✓][✓] ... [✓] [✓*] [✓] [✓] [ ] ... [✓][ ]             |   25   [ 19 ]              |
+|  [■] Healthy Bkf [Edit] | [✓][✓][✓][✓][✓][✓][✓] ... [✓] [✓*] [✓] [✓] [✓] ... [✓][✓]             |   20   [ 20 ]              |
+|  [■] No alcohol  [Edit] | [✓][✓][✓][✓][ ][✓][✓] ... [✓] [✓*] [✓] [✓] [✓] ... [✓][✓]             |   20   [ 20 ]              |
+|  [■] No sugar    [Edit] | [✓][✓][ ][✓][✓][✓][✓] ... [✓] [ *] [✓] [✓] [ ] ... [ ][ ]             |   20   [ 16 ]              |
+|  [■] Light dinner[Edit] | [✓][✓][✓][ ][✓][✓][✓] ... [✓] [✓*] [✓] [✓] [✓] ... [✓][ ]             |   20   [ 21 ]              |
+|  [■] Sleep 7.5hr [Edit] | [ ][✓][ ][ ][✓][ ][ ] ... [✓] [ *] [✓] [✓] [ ] ... [✓][ ]             |   25   [ 11 ]              |
++-------------------------+----------------------------------------------------------------------+----------------------------+
+|  Notes                                                                                                         [ + New Note ]   |
+|  -----------------------------------------------------------------------------------------------------------------------------  |
+|  18 March 2021 at 9:00 pm                                                                                                       |
+|  I gotta make sure I don't let my alcohol intake get regular again.                                                             |
+|                                                                                                                                 |
+|  17 March 2021 at 9:00 pm                                                                                                       |
+|  Great workout today, feeling energetic.                                                                                        |
++---------------------------------------------------------------------------------------------------------------------------------+
 ```
 
 ### Component Details:
-1. **Header Bar**:
+1. **Header & Navigation Bar**:
+   * App branding (`HabitLess`).
+   * Participant navigation links:
+     * `Habit Calendar` (active link to `/calendar`).
+     * `Dashboard` (clicking triggers a notification popup: *"Dashboard is still under construction"*).
    * Month/year navigation controls (`< March 2021 >`).
+   * Top Date Header / Indicator: Displays the active date and **lights up / highlights which column/day is editable** for checking off habits.
    * User account indicator (e.g. `demo@dailyhabits.xyz`).
    * `+ New Habit` primary button (Solid Walnut `#724319`).
-2. **Monthly Grid Matrix**:
-   * **Left Column (HABITS)**: Vertical list of tracked habits, each displaying its assigned color pill/strip and an inline `Edit` action button.
-   * **Center Grid (1–31)**: Daily columns labeled with day-of-week initials (`M T W T F S S`) and day numbers (1 to 31). Intersecting cells display an interactive checkmark pill styled with the **habit's assigned color** when completed.
+2. **Monthly Grid Matrix with Side Daily Habits**:
+   * **Left Side Panel / Column (HABITS)**: Vertical list of daily habits appearing for that day. Each habit displays its assigned color indicator strip/swatch, title, frequency label, and an inline `[Edit]` action button.
+   * **Top Column Header & Illuminated Active Day**: Daily columns labeled with day-of-week initials (`M T W T F S S`) and day numbers (1 to 31). The column for today's active date is illuminated/highlighted with an active focus treatment (`[T*]`, `[18*]`).
+   * **Center Grid Cells (1–31)**: Intersecting cells display checkmark pills styled with the **habit's assigned color** when completed. Cells in the illuminated active day column (`[✓*]`, `[ *]`) are interactive to check/uncheck habits for that day.
    * **Right Column (GOAL ACHIEVED)**: Displays each habit's target count alongside its achieved completion count badge (e.g., `20` target, `[ 19 ]` achieved).
 3. **Notes Section**:
    * Located directly below the calendar grid.
@@ -150,38 +158,47 @@ The Participant Daily Habit Tracker Calendar desktop interface is modeled direct
     * Role Selection (Sign Up only: Radio buttons `[x] Participant   [ ] Program Manager`)
   * Primary Action: "Create Account" / "Sign In" button (Solid Walnut `#724319`).
   * Switch link: "Already have an account? Sign In" / "Need an account? Sign Up".
+  * **Role-Based Post-Auth Destination**:
+    * `PARTICIPANT`: Routes directly to the **Habit Calendar** (`/calendar`).
+    * `PROGRAM_MANAGER`: Routes to the Program Manager view (`/manager`).
 
-### Screen 2: Participant Dashboard — Today's Checklist & Goals Tracker
-* **Path**: `/dashboard`
-* **Purpose**: Today's daily task list and goals tracker overview (`HabitLess App Design`, pp. 1, 4).
-* **Components**:
-  1. **Greeting & Current Date**:
-     * Current Date banner (e.g., "Friday, November 13, 2026").
-     * Today's completion tally (e.g., "1 of 3 habits completed today").
-  2. **Goals Tracker Summary**:
-     * Cards showing total active habits and total goals achieved this month.
-  3. **Today's Assigned Habits & Activities Checklist**:
-     * Vertical list of cards for habits scheduled for today.
-     * Each card includes:
+### Screen 2: Habit Calendar Desktop (`/calendar`) [Primary Participant Screen]
+* **Path**: `/calendar`
+* **Purpose**: Primary unified desktop interface combining the daily habits list on the side with the full monthly calendar matrix (`HabitLess App Design`, p. 3). Daily habits and the calendar desktop are **not separate pages**.
+* **Layout & Components**:
+  1. **Header & Navigation Bar**:
+     * HabitLess logo and navigation links: `Habit Calendar` (active) and `Dashboard` (triggers "Dashboard is still under construction" notification).
+     * Month/year navigation controls (`< March 2021 >`).
+     * User profile email indicator and `+ New Habit` action button.
+  2. **Top Active Date Indicator**:
+     * Positioned above the calendar grid or prominently highlighted within the date row.
+     * **Lights up / illuminates which column/day is editable** for checking off habits (e.g. Day 18 illuminated with active border and glowing background).
+  3. **Daily Habits Side Panel (Left Column, `HABITS`)**:
+     * Vertical list of daily habits scheduled for the active date.
+     * Each card/row includes:
        * Color indicator strip matching the habit's assigned color from the 8 habit tokens.
        * Habit title and frequency label.
-       * Interactive checkbox toggle (28px touch target). When checked, displays the habit's assigned color background with checkmark `✓` and strike-through text.
-  4. **Quick Action**:
-     * `+ New Habit` button opening habit creation modal.
+       * Inline `[Edit]` button opening the habit edit modal.
+  4. **Monthly Grid Matrix (1–31 Day Columns)**:
+     * Days 1 to 31 labeled with day-of-week initials (`M T W T F S S`).
+     * Cells in the illuminated active day column are interactive checkboxes/pills for checking and unchecking habits for that day.
+     * When completed, cells display the habit's assigned color background with a white checkmark `✓`.
+  5. **Goals Tracker Column (`GOAL ACHIEVED`)**:
+     * Displays target count alongside achieved completion count per habit (e.g. `20 [ 19 ]`).
+  6. **Notes Section (Bottom)**:
+     * Located below the grid with timestamped reflection entries and `+ New Note` action.
 
-### Screen 3: Daily Habit Tracker Calendar Desktop (View, Track & Edit)
-* **Path**: `/calendar`
-* **Purpose**: Full monthly habit tracking matrix matching `HabitLess App Design`, p. 3.
-* **Layout**:
-  * Month/year navigation (`< March 2021 >`) and `+ New Habit` action.
-  * 31-day matrix grid with habits on rows and days 1–31 with day initials on columns.
-  * Interactive completion checkmark pills rendered in the **habit's specific color** (e.g., Amber Glow for Journal, Blue Energy for Exercise, etc.).
-  * Right column displaying `GOAL ACHIEVED` (target count alongside achieved count, e.g. `20 / 19`).
-  * In-calendar `Edit` button on each habit row opening the edit modal.
-  * Notes section below grid with timestamped reflection entries and `+ New Note` button.
+### Screen 3: Participant Dashboard (`/dashboard`) [Under Construction Placeholder]
+* **Path**: `/dashboard`
+* **Purpose**: Placeholder screen (`HabitLess App Design`, pp. 1, 4).
+* **Behavior & Components**:
+  * When a participant clicks the "Dashboard" navigation link or directly navigates to `/dashboard`:
+    * A popup notification / toast is instantly triggered: *"Dashboard is still under construction"*.
+    * Renders a friendly under-construction placeholder view on the Papaya Whip canvas with an announcement card: *"The Participant Dashboard is currently under construction. Please use the Habit Calendar to track your daily habits."*
+    * Includes a primary button: "Go to Habit Calendar" routing back to `/calendar`.
 
 ### Screen 4: "+ New Habit" & "Edit Habit" Modal
-* **Trigger**: `+ New Habit` button on Dashboard/Calendar, or `Edit` button on a calendar habit row.
+* **Trigger**: `+ New Habit` button on `/calendar` header or `[Edit]` button on any side habit row.
 * **Fields**:
   1. **Habit Name (`*`)**: Single-line text input (2–80 chars).
   2. **Description**: Multiline text input (optional, max 500 chars).
@@ -236,7 +253,7 @@ Per `HabitLess App Design`, pp. 4–5, the following UI elements and screens are
 * **Completion Calendar / Heatmap** (separate heatmap grid showing completed vs missed days at a glance) — High Priority / High Effort.
 * **Statistics per habit** — High Priority / High Effort.
 * **Program Completion Bar (Total Habits Done)** — High Priority / High Effort.
-* **Separate Habits Management Page** (viewing/editing is unified in Calendar and Today's Checklist) — High Priority / High Effort.
+* **Separate Habits Management Page** (viewing/editing and daily habits list are unified on the Habit Calendar `/calendar`) — High Priority / High Effort.
 * **Participant Marketplace Discovery Catalog** (`See new challenge packages ... (this is a new page)`) — High Priority / High Effort.
 * **Manager Challenge Popularity Statistics** — High Priority / High Effort.
 * **Manager Active Roster Management & Deactivation** — High Priority / High Effort.
@@ -257,5 +274,7 @@ Per `HabitLess App Design`, pp. 4–5, the following UI elements and screens are
 2. **Color Independence**:
    * Completed daily cells and checklist items display both the habit's assigned color and an explicit checkmark glyph `✓`.
 3. **Screen Readers & Focus**:
-   * Calendar grid cells include descriptive `aria-label` tags (e.g., `aria-label="Journal, March 12, Completed"`).
+   * Calendar grid cells include descriptive `aria-label` tags (e.g., `aria-label="Journal, March 18, Completed"`).
+   * The top illuminated active date column features `aria-current="date"` so assistive technology clearly identifies the active editable day.
+   * Under-construction popup notifications and toasts are announced using `aria-live="polite"`.
    * Focus rings display a 3px soft `--walnut` glow.

@@ -1,8 +1,8 @@
 # HabitLess REST API Specification
 
 **Document ID**: API-SPEC-HL-01  
-**Version**: 1.4  
-**Status**: Approved API Contract Baseline (Strict MVP Scope)  
+**Version**: 1.5  
+**Status**: Approved API Contract Baseline (Strict MVP Scope - Unified Habit Calendar Architecture)  
 **Parent Project**: HabitLess - Habit and Activity Tracking System  
 **Source Brief Reference**: `HabitLess App Design: Habit and Activity Tracking System (pp. 1–5)`  
 **Scope Boundary**: Strictly High Priority / Low Effort [MVP] Features Only  
@@ -127,6 +127,9 @@
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+* **Client Post-Auth Redirection**:
+  * Role `PARTICIPANT`: Navigates to `/calendar` (Habit Calendar).
+  * Role `PROGRAM_MANAGER`: Navigates to `/manager`.
 * **Error Responses**:
   * `409 Conflict`: Email address is already registered.
   * `422 Unprocessable Entity`: Validation failure on fields.
@@ -154,6 +157,9 @@
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+* **Client Post-Auth Redirection**:
+  * Role `PARTICIPANT`: Navigates to `/calendar` (Habit Calendar).
+  * Role `PROGRAM_MANAGER`: Navigates to `/manager`.
 * **Error Responses**:
   * `401 Unauthorized`: Invalid email or password.
 
@@ -303,8 +309,15 @@
 
 ### 3.4. Tracking, Checklist & Calendar Desktop (Feature 2 & 3)
 
+> **Participant Page Architecture & API Mapping**:  
+> Participants interact primarily with the unified **Habit Calendar** (`/calendar`). Daily habits and the monthly calendar desktop matrix are **not separate pages**.  
+> - `GET /api/tracking/today` powers the left side panel of daily habits scheduled for the active date, as well as the initial state of the active day's illuminated column.  
+> - `POST /api/tracking/log` handles check/uncheck toggles when the user clicks habit cells in the active illuminated date column.  
+> - `GET /api/tracking/calendar` provides the full 1–31 month matrix and goal achievement counts for the desktop calendar grid.  
+> - **Note on Dashboard (`/dashboard`)**: The participant dashboard view is under construction in Sprint 1 MVP. Navigating to `/dashboard` or clicking the "Dashboard" nav link triggers a client-side notification popup (*"Dashboard is still under construction"*); no dedicated `/api/dashboard` endpoint is required for Sprint 1.
+
 #### `GET /api/tracking/today`
-* **Purpose**: Retrieve checklist of today's assigned habits and activities (`HabitLess App Design`, pp. 1, 4).
+* **Purpose**: Retrieve checklist of today's assigned habits and activities (`HabitLess App Design`, pp. 1, 4). Powers the side list of daily habits and the initial state of the illuminated active column on the Habit Calendar (`/calendar`).
 * **Access**: Authenticated (`PARTICIPANT`).
 * **Query Parameters**:
   * `date` (optional string, `YYYY-MM-DD`, defaults to current server date).
@@ -336,7 +349,7 @@
 ```
 
 #### `POST /api/tracking/log`
-* **Purpose**: Idempotently toggle habit completion for a specific calendar date (`HabitLess App Design`, pp. 1, 3, 4).
+* **Purpose**: Idempotently toggle habit completion for a specific calendar date (typically triggered by clicking a cell in the illuminated active day column on the Habit Calendar `/calendar`) (`HabitLess App Design`, pp. 1, 3, 4).
 * **Access**: Authenticated (`PARTICIPANT`).
 * **Request Body**:
 ```json
@@ -361,7 +374,7 @@
 ```
 
 #### `GET /api/tracking/calendar`
-* **Purpose**: Retrieve the monthly habit matrix (habits, days 1–31 with day-of-week initials, completion checkmarks in habit colors, target count vs achieved count) matching `HabitLess App Design`, p. 3.
+* **Purpose**: Retrieve the monthly habit matrix (habits, days 1–31 with day-of-week initials, completion checkmarks in habit colors, target count vs achieved count) matching `HabitLess App Design`, p. 3. Used to render the unified Habit Calendar desktop (`/calendar`).
 * **Access**: Authenticated (`PARTICIPANT`).
 * **Query Parameters**:
   * `month` (required integer, 1–12): e.g., `3`.

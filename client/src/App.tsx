@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
+import { HabitCalendarPage } from './pages/HabitCalendarPage.js';
 import { ManagerPage } from './pages/ManagerPage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 
@@ -16,16 +17,16 @@ export const App: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
 
           <Route
-            path="/dashboard"
+            path="/calendar"
             element={
               <ProtectedRoute allowedRoles={['PARTICIPANT']}>
-                <DashboardPage />
+                <HabitCalendarPage />
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/calendar"
+            path="/dashboard"
             element={
               <ProtectedRoute allowedRoles={['PARTICIPANT']}>
                 <DashboardPage />
@@ -43,8 +44,8 @@ export const App: React.FC = () => {
           />
 
           {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/calendar" replace />} />
+          <Route path="*" element={<Navigate to="/calendar" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

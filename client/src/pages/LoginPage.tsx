@@ -9,7 +9,7 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (!isLoading && user) {
-      navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/dashboard', { replace: true });
+      navigate(user.role === 'PROGRAM_MANAGER' ? '/manager' : '/calendar', { replace: true });
     }
   }, [user, isLoading, navigate]);
 

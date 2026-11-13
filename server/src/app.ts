@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import { ENV } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import habitsRoutes from './routes/habits.routes.js';
+import trackingRoutes from './routes/tracking.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export const app = express();
@@ -21,6 +23,8 @@ app.use(cookieParser());
 // Routes
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/habits', habitsRoutes);
+app.use('/api/tracking', trackingRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
