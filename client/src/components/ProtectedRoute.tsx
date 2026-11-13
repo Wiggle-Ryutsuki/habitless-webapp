@@ -21,14 +21,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: 'var(--papaya-whip)',
+        backgroundColor: 'var(--powder-blush)',
         color: 'var(--walnut)',
         gap: '1rem',
       }}>
         <div style={{
           width: '36px',
           height: '36px',
-          border: '4px solid var(--powder-blush)',
+          border: '4px solid var(--papaya-whip)',
           borderTopColor: 'var(--walnut)',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',

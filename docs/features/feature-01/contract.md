@@ -413,8 +413,8 @@ Feature 1 screens strictly use the **HabitLess Warm Natural Palette** for the au
 
 * `--walnut`: `#724319` (Headers, branding, primary buttons)
 * `--light-coral`: `#d88180` (Active borders, secondary actions)
-* `--powder-blush`: `#f7b1b0` (Card borders, focus rings)
-* `--papaya-whip`: `#feeac7` (Canvas background, input backgrounds)
+* `--powder-blush`: `#f7b1b0` (Main canvas and page background)
+* `--papaya-whip`: `#feeac7` (Card borders, subtle dividers, focus accents)
 * `--golden-sand`: `#cad182` (Role accent badges)
 * `--color-surface`: `#FFFFFF` (Card container surface)
 * `--color-text-main`: `#2D1C0B` (High contrast text)
@@ -423,13 +423,13 @@ Feature 1 screens strictly use the **HabitLess Warm Natural Palette** for the au
 * Canvas Gradient: `$gradient-right: linear-gradient(90deg, #724319ff, #d88180ff, #f7b1b0ff, #feeac7ff, #cad182ff);`
 
 ### 5.2. Screen 1: Registration (`/register`) & Login (`/login`)
-* **Container**: Centered card with `max-width: 440px`, padding `32px`, border-radius `12px`, border `1px solid var(--powder-blush)`, surface `var(--color-surface)`.
+* **Container**: Centered card with `max-width: 440px`, padding `32px`, border-radius `12px`, border `1px solid var(--papaya-whip)`, surface `var(--color-surface)`.
 * **Header**: Brand title **HabitLess** in `--walnut` (font size `1.875rem`, bold) with subtitle *"Habit and Activity Tracking System"*.
 * **Form Inputs & Attributes**:
   - Standard height: `42px`, border radius `6px`, border `1px solid var(--color-border-subtle)`, background `var(--papaya-whip)` or white.
   - Required fields annotated with red asterisk (`*`).
   - `email`: `type="email"`, `autoComplete="email"`, auto-trimmed.
-  - `password`: `type="password"`, `autoComplete="current-password"` (login) or `autoComplete="new-password"` (register).
+  - `password`: `type="password"`, `autoComplete="current-password"` (login) or `autoComplete="new-password"` (register), equipped with an interactive show/hide password toggle button (toggling between `type="password"` and `type="text"`) with accessible `aria-label`.
   - Primary autofocus: `fullName` on `/register`, `email` on `/login`.
   - Validation messages rendered directly under the affected field with `aria-live="polite"` in `--color-error`.
 * **Role Selection (`/register` only)**:
@@ -499,7 +499,7 @@ Mobile (< 768px):
 | **API-02** | API Integration | `server/tests/sprint-01/auth.api.test.ts` | 1. Submitting valid registration creates user in DB with `role=PARTICIPANT`, hashes password with bcrypt, sets HTTP-only cookie, and returns HTTP 201 with user object (strictly omitting `passwordHash`).<br>2. Submitting registration with role `PROGRAM_MANAGER` creates user with manager role.<br>3. Verifies email is stored lowercased.<br>4. Boundary tests: password < 8 chars returns 422; invalid email returns 422; invalid role (e.g. `"ADMIN"`) returns 422; whitespace-only name returns 422. | Planned |
 | **API-03** | API Integration | `server/tests/sprint-01/auth.api.test.ts` | Submitting registration with already registered email (even with different casing, e.g. `ALEX@example.com`) returns HTTP 409 Conflict with standard error envelope. | Planned |
 | **API-04** | API Integration | `server/tests/sprint-01/auth.api.test.ts` | 1. Valid login returns HTTP 200 with JWT and user profile (omitting `passwordHash`).<br>2. Invalid password returns HTTP 401 Unauthorized.<br>3. Inactive account (`isActive: false`) returns HTTP 401 Unauthorized.<br>4. `POST /api/auth/logout` clears session cookie.<br>5. `GET /api/auth/me` with cookie returns profile; without cookie returns HTTP 401; with inactive account returns HTTP 401.<br>6. **RBAC Test**: Calling endpoint protected by `requireRole([Role.PROGRAM_MANAGER])` with a valid `PARTICIPANT` token returns HTTP 403 Forbidden (`code: "FORBIDDEN"`). | Planned |
-| **UI-01** | UI Component | `client/tests/sprint-01/AuthForm.test.tsx` | 1. Renders email, password (`type="password"`), full name, and role selector radio buttons.<br>2. Enforces required fields and client-side password length &ge; 8.<br>3. Displays inline error messages with `aria-live="polite"`.<br>4. Toggles between Login and Registration views.<br>5. Disables submit button and displays loading state during submission. | Planned |
+| **UI-01** | UI Component | `client/tests/sprint-01/AuthForm.test.tsx` | 1. Renders email, password (`type="password"`), full name, and role selector radio buttons.<br>2. Enforces required fields and client-side password length &ge; 8.<br>3. Displays inline error messages with `aria-live="polite"`.<br>4. Toggles between Login and Registration views.<br>5. Disables submit button and displays loading state during submission.<br>6. Toggles password visibility between masked and plaintext when clicking show/hide button. | Planned |
 | **E2E-01 (Auth)** | End-to-End | `e2e/sprint-01/participant-journey.spec.ts` | Navigates to `/register` &rarr; registers as `PARTICIPANT` &rarr; verifies redirect to `/dashboard` &rarr; refreshes page &rarr; verifies session persists without login redirect &rarr; clicks Logout &rarr; verifies redirect to `/login`. | Planned |
 | **E2E-03 (Auth)** | End-to-End | `e2e/sprint-01/manager-journey.spec.ts` | Navigates to `/login` &rarr; logs in with Manager seed credentials &rarr; verifies redirect to `/manager` &rarr; verifies manager role badge in header. | Planned |
 
@@ -514,7 +514,7 @@ Mobile (< 768px):
 * **Desktop (&ge; 992px)**: Card centered horizontally and vertically on `$gradient-right` canvas.
 * **Tablet (768px – 991px)**: Card width `440px` with 24px margins.
 * **Mobile (< 768px)**: Card expands to full-width with `16px` padding; touch targets &ge; 44px; header collapses to hamburger menu drawer with zero horizontal scroll.
-* **WCAG 2.2 AA**: Color contrast for `--walnut` text on `--papaya-whip` exceeds 4.5:1 (actual `7.6:1`); input controls accessible via keyboard `Tab`; error announcements use `aria-live="polite"`.
+* **WCAG 2.2 AA**: Color contrast for `--walnut` text on `--powder-blush` canvas exceeds 4.5:1 (actual `6.1:1`), and on white surfaces reaches `11.5:1`; input controls accessible via keyboard `Tab`; error announcements use `aria-live="polite"`.
 
 ---
 

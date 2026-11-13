@@ -22,8 +22,8 @@ Used for global application layout, headers, backgrounds, and general UI chrome:
 | :--- | :--- | :--- | :--- | :--- |
 | `--walnut` | `#724319ff` / `#724319` | `hsla(28, 64%, 27%, 1)` | `rgba(114, 67, 25, 1)` | Header bar, primary navigation, headings, dark button states |
 | `--light-coral` | `#d88180ff` / `#d88180` | `hsla(1, 53%, 67%, 1)` | `rgba(216, 129, 128, 1)` | Secondary buttons, badge borders, accent pills |
-| `--powder-blush` | `#f7b1b0ff` / `#f7b1b0` | `hsla(1, 82%, 83%, 1)` | `rgba(247, 177, 176, 1)` | Card borders, soft dividers, table row hover highlights |
-| `--papaya-whip` | `#feeac7ff` / `#feeac7` | `hsla(38, 96%, 89%, 1)` | `rgba(254, 234, 199, 1)` | Main app background canvas, input field backgrounds |
+| `--powder-blush` | `#f7b1b0ff` / `#f7b1b0` | `hsla(1, 82%, 83%, 1)` | `rgba(247, 177, 176, 1)` | Main app background canvas, full-page backdrop |
+| `--papaya-whip` | `#feeac7ff` / `#feeac7` | `hsla(38, 96%, 89%, 1)` | `rgba(254, 234, 199, 1)` | Card borders, soft dividers, table row hover highlights |
 | `--golden-sand` | `#cad182ff` / `#cad182` | `hsla(65, 46%, 66%, 1)` | `rgba(202, 209, 130, 1)` | Theme gold accent, highlight borders |
 
 ### 1.2. Fixed Habit Color Palette Tokens (User Selectable for Habits)
@@ -252,7 +252,7 @@ Per `HabitLess App Design`, pp. 4–5, the following UI elements and screens are
 ## 6. Accessibility (WCAG 2.2 AA Compliance)
 
 1. **Color Contrast**:
-   * Text in `--walnut` (`#724319`) on `--papaya-whip` (`#feeac7`) canvas achieves a contrast ratio of `7.6:1`, exceeding WCAG AA requirements.
+   * Text in `--walnut` (`#724319`) on `--powder-blush` (`#f7b1b0`) canvas achieves a contrast ratio of `6.1:1`, exceeding WCAG AA requirements.
    * White text on `--walnut` buttons achieves `9.4:1`.
 2. **Color Independence**:
    * Completed daily cells and checklist items display both the habit's assigned color and an explicit checkmark glyph `✓`.

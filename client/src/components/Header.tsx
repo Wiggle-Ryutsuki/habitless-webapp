@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
   return (
     <header style={{
       backgroundColor: 'var(--color-surface)',
-      borderBottom: '1px solid var(--powder-blush)',
+      borderBottom: '1px solid var(--papaya-whip)',
       padding: '0 1.5rem',
       height: '64px',
       display: 'flex',
@@ -173,7 +173,7 @@ export const Header: React.FC = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ paddingBottom: '0.75rem', borderBottom: '1px solid var(--powder-blush)' }}>
+            <div style={{ paddingBottom: '0.75rem', borderBottom: '1px solid var(--papaya-whip)' }}>
               <div style={{ fontWeight: 700, color: 'var(--walnut)' }}>{user.fullName}</div>
               <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>{user.email}</div>
               <span style={{

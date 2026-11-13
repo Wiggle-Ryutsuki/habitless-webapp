@@ -31,7 +31,7 @@ describe('AuthForm UI Component (UI-01)', () => {
 
     expect(screen.getByRole('heading', { name: /habitless/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i, { selector: 'input' })).toBeInTheDocument();
     expect(screen.queryByLabelText(/full name/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     expect(screen.getByText(/don't have an account\?/i)).toBeInTheDocument();
@@ -46,7 +46,7 @@ describe('AuthForm UI Component (UI-01)', () => {
 
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i, { selector: 'input' })).toBeInTheDocument();
     expect(screen.getByLabelText(/participant/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/program manager/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('AuthForm UI Component (UI-01)', () => {
     });
 
     // Test password < 8 chars
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'short' } });
+    fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'short' } });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
@@ -105,12 +105,32 @@ describe('AuthForm UI Component (UI-01)', () => {
     );
 
     fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'user@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText(/^password/i, { selector: 'input' }), { target: { value: 'Password123!' } });
 
     const submitBtn = screen.getByRole('button', { name: /sign in/i });
     fireEvent.click(submitBtn);
 
     expect(screen.getByText('Processing...')).toBeInTheDocument();
     expect(submitBtn).toBeDisabled();
+  });
+
+  it('toggles password visibility between text and password when toggle button is clicked', () => {
+    render(
+      <MemoryRouter>
+        <AuthForm mode="login" />
+      </MemoryRouter>
+    );
+
+    const passwordInput = screen.getByLabelText(/^password/i, { selector: 'input' }) as HTMLInputElement;
+    expect(passwordInput.type).toBe('password');
+
+    const toggleButton = screen.getByRole('button', { name: /show password/i });
+    fireEvent.click(toggleButton);
+
+    expect(passwordInput.type).toBe('text');
+    expect(screen.getByRole('button', { name: /hide password/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /hide password/i }));
+    expect(passwordInput.type).toBe('password');
   });
 });

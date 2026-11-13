@@ -20,7 +20,7 @@ export const RegisterPage: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1.5rem',
-      background: 'var(--gradient-right)',
+      backgroundColor: 'var(--powder-blush)',
     }}>
       <AuthForm mode="register" />
     </div>
