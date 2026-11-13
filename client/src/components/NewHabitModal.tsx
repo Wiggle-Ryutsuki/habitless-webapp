@@ -51,7 +51,20 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
     }
   }, [isOpen]);
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setColorHex(HABIT_COLOR_PALETTE[5].hex);
+    setFrequency('DAILY');
+    setStartDate(new Date().toLocaleDateString('en-CA'));
+    setEndDate('');
+    setTargetCount(20);
+    setFieldErrors({});
+    setGeneralError(null);
+  };
+
   const handleClose = () => {
+    resetForm();
     onClose();
     // Restore focus to trigger element per WCAG 2.4.3
     if (triggerElement) {
@@ -111,8 +124,8 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
         description: description.trim() || undefined,
         colorHex,
         frequency,
-        startDate,
-        endDate: endDate ? endDate : null,
+        startDate: startDate ? new Date(`${startDate}T00:00:00.000Z`).toISOString() : undefined,
+        endDate: endDate ? new Date(`${endDate}T00:00:00.000Z`).toISOString() : null,
         targetCount,
       });
 

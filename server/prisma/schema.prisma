@@ -32,6 +32,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   habits       Habit[]
+  dailyNotes   DailyNote[]
 
   @@map("users")
 }
@@ -42,7 +43,7 @@ model Habit {
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  colorHex    String        @default("#ff9800")
+  colorHex    String        @default("#448aff")
   frequency   FrequencyType @default(DAILY)
   daysOfWeek  Int[]         @default([1, 2, 3, 4, 5, 6, 7]) // ISO-8601: 1=Mon .. 7=Sun
   startDate   DateTime      @default(now())
@@ -54,6 +55,7 @@ model Habit {
   updatedAt   DateTime      @updatedAt
 
   logs        HabitLog[]
+  notes       DailyNote[]
 
   @@index([userId, isActive])
   @@map("habits")
@@ -72,5 +74,20 @@ model HabitLog {
   @@unique([habitId, logDate])
   @@index([logDate])
   @@map("habit_logs")
+}
+
+model DailyNote {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId   Int?
+  habit     Habit?   @relation(fields: [habitId], references: [id], onDelete: SetNull)
+  noteDate  DateTime @db.Date
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, noteDate])
+  @@map("daily_notes")
 }
 

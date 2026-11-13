@@ -239,6 +239,20 @@ export async function updateHabit(req: Request, res: Response, next: NextFunctio
         );
       }
       dataToUpdate.frequency = frequency as FrequencyType;
+
+      if (daysOfWeek === undefined) {
+        if (frequency === 'DAILY') {
+          dataToUpdate.daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
+        } else if (frequency === 'WEEKDAYS') {
+          dataToUpdate.daysOfWeek = [1, 2, 3, 4, 5];
+        } else if (frequency === 'THREE_TIMES_WEEKLY') {
+          dataToUpdate.daysOfWeek = [1, 3, 5];
+        } else if (frequency === 'WEEKLY') {
+          dataToUpdate.daysOfWeek = [1];
+        } else if (frequency === 'MONTHLY') {
+          dataToUpdate.daysOfWeek = [];
+        }
+      }
     }
 
     if (daysOfWeek !== undefined) {

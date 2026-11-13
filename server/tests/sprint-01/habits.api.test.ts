@@ -288,6 +288,25 @@ describe('Habit Management API (API-05, API-06, API-07, API-08)', () => {
       expect(res.body.error.code).toBe('INVALID_HABIT_COLOR');
     });
 
+    it('updates habit frequency and endDate successfully and saves immediately', async () => {
+      const res = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          frequency: 'WEEKDAYS',
+          endDate: '2026-12-31T00:00:00.000Z',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.frequency).toBe('WEEKDAYS');
+      expect(res.body.daysOfWeek).toEqual([1, 2, 3, 4, 5]);
+      expect(res.body.endDate).toContain('2026-12-31');
+
+      const dbHabit = await prisma.habit.findUnique({ where: { id: createdHabitId } });
+      expect(dbHabit?.frequency).toBe('WEEKDAYS');
+      expect(dbHabit?.endDate).toBeDefined();
+    });
+
     it('rejects update on other participant habit with 404 Not Found', async () => {
       const res = await request(app)
         .put(`/api/habits/${createdHabitId}`)
@@ -298,6 +317,47 @@ describe('Habit Management API (API-05, API-06, API-07, API-08)', () => {
 
       expect(res.status).toBe(404);
       expect(res.body.error.code).toBe('HABIT_NOT_FOUND');
+    });
+
+    it('rejects update with targetCount < 1 or targetCount > 31 with 422', async () => {
+      const res1 = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({ targetCount: 0 });
+      expect(res1.status).toBe(422);
+      expect(res1.body.error.code).toBe('INVALID_TARGET_COUNT');
+
+      const res2 = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({ targetCount: 32 });
+      expect(res2.status).toBe(422);
+      expect(res2.body.error.code).toBe('INVALID_TARGET_COUNT');
+    });
+
+    it('rejects update with inverted date range with 422', async () => {
+      const res = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          startDate: '2026-04-01T00:00:00.000Z',
+          endDate: '2026-03-01T00:00:00.000Z',
+        });
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('INVALID_DATE_RANGE');
+    });
+
+    it('rejects unauthenticated calls with 401 and manager with 403', async () => {
+      const res1 = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .send({ title: 'No Auth Title' });
+      expect(res1.status).toBe(401);
+
+      const res2 = await request(app)
+        .put(`/api/habits/${createdHabitId}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send({ title: 'Manager Title' });
+      expect(res2.status).toBe(403);
     });
   });
 
