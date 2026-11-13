@@ -373,10 +373,10 @@ Detailed payloads are documented in [`docs/sprint-01/api-spec.md`](file:///c:/Us
 
 ## 9. Acceptance Criteria (Given-When-Then)
 
-* **AC-01 (Participant Registration & Role Initialization)**:  
+* **AC-01 (User Registration & Role-Based Routing)**:  
   *Given* an unregistered email address,  
-  *When* a user submits the Sign Up form with name, email, password, and selects role `PARTICIPANT`,  
-  *Then* a new user is created in PostgreSQL with `role = PARTICIPANT`, `isActive = true`, and the user is logged in.
+  *When* a user submits the Sign Up form with valid name, password, and selects their role (`PARTICIPANT` or `PROGRAM_MANAGER`),  
+  *Then* a new user is created in PostgreSQL with the chosen role, `isActive = true`, an authenticated session cookie is established, and the user is routed to their corresponding role view (`/dashboard` for Participant, `/manager` for Program Manager, or internal `redirect` destination).
 * **AC-02 (Authentication & Role Redirection)**:  
   *Given* a registered user with role `PROGRAM_MANAGER`,  
   *When* valid credentials are submitted on the login screen,  
