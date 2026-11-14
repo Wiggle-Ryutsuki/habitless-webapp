@@ -8,6 +8,8 @@ import {
   getGoalsSummary,
   getNotes,
   createNote,
+  updateNote,
+  deleteNote,
 } from '../controllers/tracking.controller.js';
 
 const router = Router();
@@ -22,6 +24,8 @@ router.get('/calendar', getCalendarMatrix);
 router.get('/goals', getGoalsSummary);
 router.get('/notes', getNotes);
 router.post('/notes', createNote);
+router.put('/notes/:id', updateNote);
+router.delete('/notes/:id', deleteNote);
 
 export default router;
 

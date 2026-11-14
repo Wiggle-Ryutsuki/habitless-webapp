@@ -7,6 +7,7 @@ import {
   GoalsSummaryResponse,
   DailyNote,
   CreateNotePayload,
+  UpdateNotePayload,
 } from '../types/habit.js';
 
 const API_BASE = '/api';
@@ -173,5 +174,35 @@ export async function createNote(payload: CreateNotePayload): Promise<DailyNote>
     body: JSON.stringify(payload),
   });
   return handleResponse<DailyNote>(res);
+}
+
+export async function updateNote(id: number, payload: UpdateNotePayload): Promise<DailyNote> {
+  const res = await fetch(`${API_BASE}/tracking/notes/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<DailyNote>(res);
+}
+
+export async function deleteNote(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/tracking/notes/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    let errBody: { error?: { code?: string; message?: string } } = {};
+    try {
+      errBody = await res.json();
+    } catch {
+      // response might not be json
+    }
+    const message = errBody.error?.message || `Failed to delete note (Status ${res.status})`;
+    const code = errBody.error?.code || 'DELETE_NOTE_ERROR';
+    throw new HabitApiError(message, code);
+  }
 }
 

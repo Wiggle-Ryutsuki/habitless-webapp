@@ -18,8 +18,8 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
   refreshKey,
 }) => {
   const now = new Date();
-  const [currentMonth, setCurrentMonth] = useState(() => initialMonth || now.getUTCMonth() + 1);
-  const [currentYear, setCurrentYear] = useState(() => initialYear || now.getUTCFullYear());
+  const [currentMonth, setCurrentMonth] = useState(() => initialMonth || now.getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(() => initialYear || now.getFullYear());
 
   const [matrixData, setMatrixData] = useState<CalendarMatrixResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,18 +73,22 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
     }
   };
 
-  // Check if a given day is "today"
-  const todayUtc = new Date();
+  // Check if a given day is "today" or in the future
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth() + 1;
+  const todayDayNum = today.getDate();
+
   const isCurrentMonthAndYear =
-    todayUtc.getUTCFullYear() === currentYear && todayUtc.getUTCMonth() + 1 === currentMonth;
-  const todayDayNum = todayUtc.getUTCDate();
+    todayYear === currentYear && todayMonth === currentMonth;
 
-  // Max allowed log date: tomorrow UTC
-  const maxAllowedDate = new Date(Date.UTC(todayUtc.getUTCFullYear(), todayUtc.getUTCMonth(), todayUtc.getUTCDate() + 1));
-
+  // Only today and past days are editable; tomorrow and subsequent days are future (disabled)
   const isFutureDay = (day: number) => {
-    const targetDate = new Date(Date.UTC(currentYear, currentMonth - 1, day));
-    return targetDate.getTime() > maxAllowedDate.getTime();
+    if (currentYear > todayYear) return true;
+    if (currentYear < todayYear) return false;
+    if (currentMonth > todayMonth) return true;
+    if (currentMonth < todayMonth) return false;
+    return day > todayDayNum;
   };
 
   // Toggle cell completion

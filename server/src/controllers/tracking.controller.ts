@@ -448,16 +448,133 @@ export async function createNote(req: Request, res: Response, next: NextFunction
         noteDate: new Date(`${noteDate}T00:00:00.000Z`),
         content: content.trim(),
       },
+      include: {
+        habit: {
+          select: {
+            id: true,
+            title: true,
+            colorHex: true,
+          },
+        },
+      },
     });
 
     res.status(201).json({
       id: created.id,
       habitId: created.habitId,
-      habitTitle: linkedHabitTitle,
+      habitTitle: created.habit?.title ?? linkedHabitTitle,
+      colorHex: created.habit?.colorHex ?? null,
       noteDate,
       timestamp: created.createdAt.toISOString(),
       content: created.content,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateNote(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const noteId = parseInt(req.params.id, 10);
+
+    if (isNaN(noteId)) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const existing = await prisma.dailyNote.findFirst({
+      where: { id: noteId },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const { noteDate, content, habitId } = req.body;
+    const dataToUpdate: Record<string, unknown> = {};
+
+    if (content !== undefined) {
+      if (typeof content !== 'string' || content.trim().length === 0 || content.trim().length > 1000) {
+        throw new AppError(422, 'INVALID_NOTE_CONTENT', 'Content must be between 1 and 1000 characters.');
+      }
+      dataToUpdate.content = content.trim();
+    }
+
+    if (noteDate !== undefined) {
+      if (typeof noteDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(noteDate) || isNaN(Date.parse(`${noteDate}T00:00:00.000Z`))) {
+        throw new AppError(422, 'INVALID_DATE_FORMAT', 'noteDate must be a valid string formatted as YYYY-MM-DD.');
+      }
+      dataToUpdate.noteDate = new Date(`${noteDate}T00:00:00.000Z`);
+    }
+
+    if (habitId !== undefined) {
+      if (habitId === null || habitId === '') {
+        dataToUpdate.habitId = null;
+      } else {
+        const hId = Number(habitId);
+        if (isNaN(hId)) {
+          throw new AppError(422, 'INVALID_HABIT_ID', 'habitId must be an integer.');
+        }
+        const habit = await prisma.habit.findFirst({
+          where: { id: hId },
+        });
+        if (!habit || habit.userId !== userId) {
+          throw new AppError(404, 'HABIT_NOT_FOUND', 'Habit not found.');
+        }
+        dataToUpdate.habitId = habit.id;
+      }
+    }
+
+    const updated = await prisma.dailyNote.update({
+      where: { id: noteId },
+      data: dataToUpdate,
+      include: {
+        habit: {
+          select: {
+            id: true,
+            title: true,
+            colorHex: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      id: updated.id,
+      habitId: updated.habitId,
+      habitTitle: updated.habit?.title ?? null,
+      colorHex: updated.habit?.colorHex ?? null,
+      noteDate: updated.noteDate.toISOString().split('T')[0],
+      timestamp: updated.createdAt.toISOString(),
+      content: updated.content,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteNote(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const noteId = parseInt(req.params.id, 10);
+
+    if (isNaN(noteId)) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const existing = await prisma.dailyNote.findFirst({
+      where: { id: noteId },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    await prisma.dailyNote.delete({
+      where: { id: noteId },
+    });
+
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

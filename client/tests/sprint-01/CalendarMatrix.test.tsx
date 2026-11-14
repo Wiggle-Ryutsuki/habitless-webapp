@@ -182,4 +182,67 @@ describe('Calendar Desktop Matrix Component (UI-04)', () => {
       expect(screen.getByText('No habits created yet')).toBeInTheDocument();
     });
   });
+
+  it('keeps today and previous days interactive but disables tomorrow and subsequent future days', async () => {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    const todayDay = today.getDate();
+
+    const currentMonthData: CalendarMatrixResponse = {
+      month: currentMonth,
+      year: currentYear,
+      daysInMonth: 31,
+      dayInitials: Array(31).fill('M'),
+      habits: [
+        {
+          habitId: 201,
+          title: 'Daily Meditation',
+          colorHex: '#448aff',
+          targetCount: 20,
+          goalAchievedCount: 5,
+          days: {},
+        },
+      ],
+    };
+
+    const mockToggle = vi.spyOn(HabitsService, 'toggleHabitCompletion').mockResolvedValue({
+      habitId: 201,
+      date: `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`,
+      completed: true,
+    });
+    vi.spyOn(HabitsService, 'fetchCalendarMatrix').mockResolvedValue(currentMonthData);
+
+    render(
+      <CalendarMatrix
+        initialMonth={currentMonth}
+        initialYear={currentYear}
+        onEditHabit={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Daily Meditation')).toBeInTheDocument();
+    });
+
+    // Today cell is interactive (not disabled)
+    const todayCell = screen.getByLabelText(`Daily Meditation, Day ${todayDay}: Not completed`);
+    expect(todayCell).not.toBeDisabled();
+
+    // Previous day (if today > 1) is interactive (not disabled)
+    if (todayDay > 1) {
+      const yesterdayCell = screen.getByLabelText(`Daily Meditation, Day ${todayDay - 1}: Not completed`);
+      expect(yesterdayCell).not.toBeDisabled();
+    }
+
+    // Tomorrow (day after today, if within 31 days) is disabled
+    if (todayDay < 31) {
+      const tomorrowCell = screen.getByLabelText(`Daily Meditation, Day ${todayDay + 1}: Not completed`);
+      expect(tomorrowCell).toBeDisabled();
+
+      // Clicking tomorrow cell should not trigger toggleHabitCompletion
+      fireEvent.click(tomorrowCell);
+      expect(mockToggle).not.toHaveBeenCalled();
+    }
+  });
 });

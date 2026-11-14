@@ -113,3 +113,9 @@ export interface CreateNotePayload {
   habitId?: number | null;
 }
 
+export interface UpdateNotePayload {
+  noteDate?: string;
+  content?: string;
+  habitId?: number | null;
+}
+

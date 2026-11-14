@@ -123,5 +123,88 @@ describe('Calendar Notes Feed Component (UI-06)', () => {
 
     expect(screen.getByText('No reflection notes yet. Log your first habit reflection.')).toBeInTheDocument();
   });
+
+  it('allows editing an existing reflection note and calls updateNote and onNoteUpdated', async () => {
+    const mockOnNoteUpdated = vi.fn();
+    vi.spyOn(HabitsService, 'updateNote').mockResolvedValue({
+      id: 1,
+      habitId: 101,
+      habitTitle: 'No alcohol',
+      colorHex: '#f44336',
+      noteDate: '2021-03-18',
+      timestamp: '2021-03-18T21:00:00.000Z',
+      content: 'Updated reflection: drank plenty of water and had herbal tea.',
+    });
+
+    render(
+      <CalendarNotes
+        notes={sampleNotes}
+        habits={sampleHabits}
+        onNoteCreated={vi.fn()}
+        onNoteUpdated={mockOnNoteUpdated}
+      />
+    );
+
+    const editBtn = screen.getByRole('button', { name: 'Edit note from 2021-03-18' });
+    fireEvent.click(editBtn);
+
+    const textarea = screen.getByLabelText(/Reflection/);
+    expect((textarea as HTMLTextAreaElement).value).toBe(sampleNotes[0].content);
+
+    fireEvent.change(textarea, { target: { value: 'Updated reflection: drank plenty of water and had herbal tea.' } });
+
+    const saveBtn = screen.getByRole('button', { name: 'Save Changes' });
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(HabitsService.updateNote).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          content: 'Updated reflection: drank plenty of water and had herbal tea.',
+        })
+      );
+      expect(mockOnNoteUpdated).toHaveBeenCalled();
+    });
+  });
+
+  it('opens themed confirmation popup when Remove is clicked, cancels on Cancel, and deletes on Remove Note', async () => {
+    const mockOnNoteDeleted = vi.fn();
+    vi.spyOn(HabitsService, 'deleteNote').mockResolvedValue(undefined);
+
+    render(
+      <CalendarNotes
+        notes={sampleNotes}
+        habits={sampleHabits}
+        onNoteCreated={vi.fn()}
+        onNoteDeleted={mockOnNoteDeleted}
+      />
+    );
+
+    const removeBtn = screen.getByRole('button', { name: 'Remove note from 2021-03-18' });
+    expect(removeBtn.querySelector('svg')).toBeInTheDocument();
+    fireEvent.click(removeBtn);
+
+    // Verify in-app themed popup dialog opens with the confirmation message
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText('Remove Reflection Note')).toBeInTheDocument();
+    expect(screen.getByText('Are you sure you want to remove this reflection note?')).toBeInTheDocument();
+
+    // Verify Cancel button closes the popup without calling deleteNote
+    const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+    fireEvent.click(cancelBtn);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(HabitsService.deleteNote).not.toHaveBeenCalled();
+
+    // Click Remove again and confirm deletion
+    fireEvent.click(removeBtn);
+    const confirmRemoveBtn = screen.getByRole('button', { name: 'Remove Note' });
+    fireEvent.click(confirmRemoveBtn);
+
+    await waitFor(() => {
+      expect(HabitsService.deleteNote).toHaveBeenCalledWith(1);
+      expect(mockOnNoteDeleted).toHaveBeenCalledWith(1);
+    });
+  });
 });
 

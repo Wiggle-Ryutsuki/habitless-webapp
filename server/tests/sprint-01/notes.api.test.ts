@@ -214,5 +214,131 @@ describe('Reflection Notes API (API-11)', () => {
       }
     });
   });
+
+  describe('PUT /api/tracking/notes/:id (Editable Notes)', () => {
+    let noteToEditId: number;
+
+    beforeAll(async () => {
+      const createRes = await request(app)
+        .post('/api/tracking/notes')
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          noteDate: '2021-03-20',
+          content: 'Original note text before edit.',
+          habitId: p1HabitId,
+        });
+      noteToEditId = createRes.body.id;
+    });
+
+    it('updates note content, date, and habit successfully for owner', async () => {
+      const res = await request(app)
+        .put(`/api/tracking/notes/${noteToEditId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          content: 'Updated reflection text with more depth.',
+          noteDate: '2021-03-21',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe(noteToEditId);
+      expect(res.body.content).toBe('Updated reflection text with more depth.');
+      expect(res.body.noteDate).toBe('2021-03-21');
+      expect(res.body.habitTitle).toBe('Meditation Practice');
+    });
+
+    it('can remove linked habit by sending habitId: null', async () => {
+      const res = await request(app)
+        .put(`/api/tracking/notes/${noteToEditId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          habitId: null,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.habitId).toBeNull();
+      expect(res.body.habitTitle).toBeNull();
+    });
+
+    it('rejects editing empty content with 422', async () => {
+      const res = await request(app)
+        .put(`/api/tracking/notes/${noteToEditId}`)
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          content: '   ',
+        });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('INVALID_NOTE_CONTENT');
+    });
+
+    it('rejects editing another participant note with 404 Not Found', async () => {
+      const res = await request(app)
+        .put(`/api/tracking/notes/${noteToEditId}`)
+        .set('Authorization', `Bearer ${participant2Token}`)
+        .send({
+          content: 'Hacked note content',
+        });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOTE_NOT_FOUND');
+    });
+  });
+
+  describe('DELETE /api/tracking/notes/:id (Removable Notes)', () => {
+    let noteToDeleteId: number;
+
+    beforeAll(async () => {
+      const createRes = await request(app)
+        .post('/api/tracking/notes')
+        .set('Authorization', `Bearer ${participant1Token}`)
+        .send({
+          noteDate: '2021-03-22',
+          content: 'Note scheduled for deletion.',
+        });
+      noteToDeleteId = createRes.body.id;
+    });
+
+    it('rejects deleting another participant note with 404 Not Found', async () => {
+      const res = await request(app)
+        .delete(`/api/tracking/notes/${noteToDeleteId}`)
+        .set('Authorization', `Bearer ${participant2Token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOTE_NOT_FOUND');
+    });
+
+    it('deletes owner note successfully with 204 No Content', async () => {
+      const res = await request(app)
+        .delete(`/api/tracking/notes/${noteToDeleteId}`)
+        .set('Authorization', `Bearer ${participant1Token}`);
+
+      expect(res.status).toBe(204);
+
+      // Verify removed from database
+      const dbNote = await prisma.dailyNote.findUnique({
+        where: { id: noteToDeleteId },
+      });
+      expect(dbNote).toBeNull();
+    });
+
+    it('returns 404 when deleting an already deleted note', async () => {
+      const res = await request(app)
+        .delete(`/api/tracking/notes/${noteToDeleteId}`)
+        .set('Authorization', `Bearer ${participant1Token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOTE_NOT_FOUND');
+    });
+
+    it('rejects unauthenticated requests with 401 and manager with 403', async () => {
+      const res1 = await request(app).delete(`/api/tracking/notes/9999`);
+      expect(res1.status).toBe(401);
+
+      const res2 = await request(app)
+        .delete(`/api/tracking/notes/9999`)
+        .set('Authorization', `Bearer ${managerToken}`);
+      expect(res2.status).toBe(403);
+    });
+  });
 });
 

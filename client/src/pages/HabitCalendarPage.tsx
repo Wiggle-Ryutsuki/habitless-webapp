@@ -68,6 +68,14 @@ export const HabitCalendarPage: React.FC = () => {
     setNotes((prev) => [newNote, ...prev]);
   };
 
+  const handleNoteUpdated = (updatedNote: DailyNote) => {
+    setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
+  };
+
+  const handleNoteDeleted = (noteId: number) => {
+    setNotes((prev) => prev.filter((n) => n.id !== noteId));
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--powder-blush)' }}>
       <Header />
@@ -82,6 +90,8 @@ export const HabitCalendarPage: React.FC = () => {
           notes={notes}
           habits={habitsList}
           onNoteCreated={handleNoteCreated}
+          onNoteUpdated={handleNoteUpdated}
+          onNoteDeleted={handleNoteDeleted}
         />
 
         <EditHabitModal
