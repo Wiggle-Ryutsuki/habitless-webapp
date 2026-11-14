@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FrequencyType, Habit } from '../types/habit.js';
+import { Habit } from '../types/habit.js';
 import { createHabit, HabitApiError } from '../services/habits.service.js';
 import { ColorPicker, HABIT_COLOR_PALETTE } from './ColorPicker.js';
+import { DayOfWeekSelector, deriveFrequencyType } from './DayOfWeekSelector.js';
 
 export interface NewHabitModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [colorHex, setColorHex] = useState(HABIT_COLOR_PALETTE[5].hex); // Amber Glow (#ff9800)
-  const [frequency, setFrequency] = useState<FrequencyType>('DAILY');
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [startDate, setStartDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [endDate, setEndDate] = useState('');
   const [targetCount, setTargetCount] = useState(20);
@@ -51,7 +52,20 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
     }
   }, [isOpen]);
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setColorHex(HABIT_COLOR_PALETTE[5].hex);
+    setSelectedDays([1, 2, 3, 4, 5, 6, 7]);
+    setStartDate(new Date().toLocaleDateString('en-CA'));
+    setEndDate('');
+    setTargetCount(20);
+    setFieldErrors({});
+    setGeneralError(null);
+  };
+
   const handleClose = () => {
+    resetForm();
     onClose();
     // Restore focus to trigger element per WCAG 2.4.3
     if (triggerElement) {
@@ -106,13 +120,15 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const derivedFrequency = deriveFrequencyType(selectedDays);
       const created = await createHabit({
         title: title.trim(),
         description: description.trim() || undefined,
         colorHex,
-        frequency,
-        startDate,
-        endDate: endDate ? endDate : null,
+        frequency: derivedFrequency,
+        daysOfWeek: selectedDays,
+        startDate: startDate ? new Date(`${startDate}T00:00:00.000Z`).toISOString() : undefined,
+        endDate: endDate ? new Date(`${endDate}T00:00:00.000Z`).toISOString() : null,
         targetCount,
       });
 
@@ -280,61 +296,40 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
             <ColorPicker value={colorHex} onChange={setColorHex} id="modal-habit-color" />
           </div>
 
-          {/* Frequency & Target Count */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label htmlFor="habit-frequency" style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.375rem', color: 'var(--color-text-main)' }}>
-                Frequency <span style={{ color: 'var(--color-error)' }}>*</span>
-              </label>
-              <select
-                id="habit-frequency"
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value as FrequencyType)}
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--papaya-whip)',
-                  padding: '0 0.5rem',
-                  backgroundColor: '#ffffff',
-                  color: 'var(--color-text-main)',
-                }}
-              >
-                <option value="DAILY">Daily (Every Day)</option>
-                <option value="WEEKDAYS">Weekdays (Mon–Fri)</option>
-                <option value="THREE_TIMES_WEEKLY">3x per Week</option>
-                <option value="WEEKLY">Weekly</option>
-                <option value="MONTHLY">Monthly</option>
-              </select>
-            </div>
+          {/* Frequency: Alarm-style day-of-week selection */}
+          <DayOfWeekSelector
+            selectedDays={selectedDays}
+            onChange={setSelectedDays}
+            id="habit-frequency"
+          />
 
-            <div>
-              <label htmlFor="habit-target-count" style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.375rem', color: 'var(--color-text-main)' }}>
-                Monthly Target Count
-              </label>
-              <input
-                id="habit-target-count"
-                type="number"
-                min={1}
-                max={31}
-                value={targetCount}
-                onChange={(e) => setTargetCount(parseInt(e.target.value, 10) || 1)}
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  borderRadius: '6px',
-                  border: `1px solid ${fieldErrors.targetCount ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
-                  padding: '0 0.75rem',
-                  backgroundColor: '#ffffff',
-                  color: 'var(--color-text-main)',
-                }}
-              />
-              {fieldErrors.targetCount && (
-                <p aria-live="polite" style={{ color: 'var(--color-error)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
-                  {fieldErrors.targetCount}
-                </p>
-              )}
-            </div>
+          {/* Monthly Target Count */}
+          <div>
+            <label htmlFor="habit-target-count" style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.375rem', color: 'var(--color-text-main)' }}>
+              Monthly Target Count (1–31) <span style={{ color: 'var(--color-error)' }}>*</span>
+            </label>
+            <input
+              id="habit-target-count"
+              type="number"
+              min={1}
+              max={31}
+              value={targetCount}
+              onChange={(e) => setTargetCount(parseInt(e.target.value, 10) || 1)}
+              style={{
+                width: '100%',
+                height: '42px',
+                borderRadius: '6px',
+                border: `1px solid ${fieldErrors.targetCount ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
+                padding: '0 0.75rem',
+                backgroundColor: '#ffffff',
+                color: 'var(--color-text-main)',
+              }}
+            />
+            {fieldErrors.targetCount && (
+              <p aria-live="polite" style={{ color: 'var(--color-error)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+                {fieldErrors.targetCount}
+              </p>
+            )}
           </div>
 
           {/* Dates */}

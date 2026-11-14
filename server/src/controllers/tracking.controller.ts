@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { isHabitScheduledForDate } from '../utils/frequency.js';
+import { calculateMonthlyGoals } from '../utils/goals.js';
 
 export async function getTodayChecklist(req: Request, res: Response, next: NextFunction) {
   try {
@@ -163,6 +164,417 @@ export async function logHabit(req: Request, res: Response, next: NextFunction) 
       completed,
       updatedAt: new Date().toISOString(),
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getCalendarMatrix(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const monthQuery = req.query.month as string;
+    const yearQuery = req.query.year as string;
+
+    if (!monthQuery || !yearQuery) {
+      throw new AppError(400, 'MISSING_DATE_PARAMS', 'Both month and year query parameters are required.');
+    }
+
+    const month = parseInt(monthQuery, 10);
+    const year = parseInt(yearQuery, 10);
+
+    if (isNaN(month) || month < 1 || month > 12) {
+      throw new AppError(400, 'INVALID_MONTH', 'Month must be an integer between 1 and 12.');
+    }
+
+    if (isNaN(year) || year < 1900 || year > 2100) {
+      throw new AppError(400, 'INVALID_YEAR', 'Year must be a valid 4-digit integer.');
+    }
+
+    // Number of days in the specified month
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+    // Generate day initials (e.g. M, T, W, T, F, S, S) for each day 1..daysInMonth
+    const DAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const dayInitials: string[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayOfWeek = new Date(Date.UTC(year, month - 1, d)).getUTCDay();
+      dayInitials.push(DAY_INITIALS[dayOfWeek]);
+    }
+
+    // Fetch user's active habits
+    const habits = await prisma.habit.findMany({
+      where: {
+        userId,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
+    const endOfMonth = new Date(Date.UTC(year, month - 1, daysInMonth, 23, 59, 59, 999));
+
+    // Fetch all logs for user's habits in this month
+    const habitIds = habits.map((h) => h.id);
+    const logs = await prisma.habitLog.findMany({
+      where: {
+        habitId: { in: habitIds },
+        logDate: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+
+    // Group logs by habitId -> dayNumber -> log
+    const habitLogsMap = new Map<number, Map<number, boolean>>();
+    for (const log of logs) {
+      if (!habitLogsMap.has(log.habitId)) {
+        habitLogsMap.set(log.habitId, new Map());
+      }
+      const dayNum = new Date(log.logDate).getUTCDate();
+      habitLogsMap.get(log.habitId)!.set(dayNum, log.completed);
+    }
+
+    const habitsMatrix = habits.map((h) => {
+      const days: Record<string, boolean> = {};
+      const thisHabitLogs = habitLogsMap.get(h.id) || new Map<number, boolean>();
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        days[String(d)] = thisHabitLogs.get(d) ?? false;
+      }
+
+      // Calculate goal achieved count for this month
+      const logRecords = Array.from(thisHabitLogs.entries()).map(([day, completed]) => ({
+        logDate: new Date(Date.UTC(year, month - 1, day)),
+        completed,
+      }));
+      const { achieved } = calculateMonthlyGoals(logRecords, h.targetCount, month, year);
+
+      return {
+        habitId: h.id,
+        title: h.title,
+        description: h.description,
+        colorHex: h.colorHex,
+        frequency: h.frequency,
+        daysOfWeek: h.daysOfWeek,
+        startDate: h.startDate.toISOString(),
+        endDate: h.endDate ? h.endDate.toISOString() : null,
+        targetCount: h.targetCount,
+        goalAchievedCount: achieved,
+        days,
+      };
+    });
+
+    res.status(200).json({
+      month,
+      year,
+      daysInMonth,
+      dayInitials,
+      habits: habitsMatrix,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getGoalsSummary(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const now = new Date();
+    const monthQuery = req.query.month as string;
+    const yearQuery = req.query.year as string;
+
+    const month = monthQuery ? parseInt(monthQuery, 10) : now.getUTCMonth() + 1;
+    const year = yearQuery ? parseInt(yearQuery, 10) : now.getUTCFullYear();
+
+    if (isNaN(month) || month < 1 || month > 12) {
+      throw new AppError(400, 'INVALID_MONTH', 'Month must be an integer between 1 and 12.');
+    }
+
+    if (isNaN(year) || year < 1900 || year > 2100) {
+      throw new AppError(400, 'INVALID_YEAR', 'Year must be a valid 4-digit integer.');
+    }
+
+    const habits = await prisma.habit.findMany({
+      where: {
+        userId,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
+    const endOfMonth = new Date(Date.UTC(year, month - 1, daysInMonth, 23, 59, 59, 999));
+
+    const habitIds = habits.map((h) => h.id);
+    const logs = await prisma.habitLog.findMany({
+      where: {
+        habitId: { in: habitIds },
+        logDate: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+        completed: true,
+      },
+    });
+
+    const logCountsByHabit = new Map<number, number>();
+    for (const log of logs) {
+      logCountsByHabit.set(log.habitId, (logCountsByHabit.get(log.habitId) || 0) + 1);
+    }
+
+    let totalGoalsAchieved = 0;
+    const habitsSummary = habits.map((h) => {
+      const achieved = logCountsByHabit.get(h.id) || 0;
+      totalGoalsAchieved += achieved;
+      return {
+        habitId: h.id,
+        title: h.title,
+        target: h.targetCount,
+        achieved,
+      };
+    });
+
+    res.status(200).json({
+      activeHabitsCount: habits.length,
+      totalGoalsAchievedThisMonth: totalGoalsAchieved,
+      habitsSummary,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getNotes(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const monthQuery = req.query.month as string | undefined;
+    const yearQuery = req.query.year as string | undefined;
+    const habitIdQuery = req.query.habitId as string | undefined;
+
+    const whereClause: any = { userId };
+
+    if (monthQuery && yearQuery) {
+      const month = parseInt(monthQuery, 10);
+      const year = parseInt(yearQuery, 10);
+      if (!isNaN(month) && !isNaN(year) && month >= 1 && month <= 12) {
+        const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        whereClause.noteDate = {
+          gte: new Date(Date.UTC(year, month - 1, 1)),
+          lte: new Date(Date.UTC(year, month - 1, daysInMonth, 23, 59, 59, 999)),
+        };
+      }
+    }
+
+    if (habitIdQuery) {
+      const habitId = parseInt(habitIdQuery, 10);
+      if (!isNaN(habitId)) {
+        whereClause.habitId = habitId;
+      }
+    }
+
+    const notes = await prisma.dailyNote.findMany({
+      where: whereClause,
+      include: {
+        habit: {
+          select: {
+            id: true,
+            title: true,
+            colorHex: true,
+          },
+        },
+      },
+      orderBy: [{ noteDate: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    const response = notes.map((n) => ({
+      id: n.id,
+      habitId: n.habitId,
+      habitTitle: n.habit?.title ?? null,
+      colorHex: n.habit?.colorHex ?? null,
+      noteDate: n.noteDate.toISOString().split('T')[0],
+      timestamp: n.createdAt.toISOString(),
+      content: n.content,
+    }));
+
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createNote(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const { noteDate, content, habitId } = req.body;
+
+    if (!noteDate || typeof noteDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(noteDate) || isNaN(Date.parse(`${noteDate}T00:00:00.000Z`))) {
+      throw new AppError(422, 'INVALID_DATE_FORMAT', 'noteDate must be a valid string formatted as YYYY-MM-DD.');
+    }
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0 || content.trim().length > 1000) {
+      throw new AppError(422, 'INVALID_NOTE_CONTENT', 'Content must be between 1 and 1000 characters.');
+    }
+
+    let linkedHabitTitle: string | null = null;
+    let finalHabitId: number | null = null;
+
+    if (habitId !== undefined && habitId !== null) {
+      if (typeof habitId !== 'number' || isNaN(habitId)) {
+        throw new AppError(422, 'INVALID_HABIT_ID', 'habitId must be an integer.');
+      }
+
+      const habit = await prisma.habit.findFirst({
+        where: { id: habitId },
+      });
+
+      if (!habit || habit.userId !== userId) {
+        throw new AppError(404, 'HABIT_NOT_FOUND', 'Habit not found.');
+      }
+
+      finalHabitId = habit.id;
+      linkedHabitTitle = habit.title;
+    }
+
+    const created = await prisma.dailyNote.create({
+      data: {
+        userId,
+        habitId: finalHabitId,
+        noteDate: new Date(`${noteDate}T00:00:00.000Z`),
+        content: content.trim(),
+      },
+      include: {
+        habit: {
+          select: {
+            id: true,
+            title: true,
+            colorHex: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      id: created.id,
+      habitId: created.habitId,
+      habitTitle: created.habit?.title ?? linkedHabitTitle,
+      colorHex: created.habit?.colorHex ?? null,
+      noteDate,
+      timestamp: created.createdAt.toISOString(),
+      content: created.content,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateNote(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const noteId = parseInt(req.params.id, 10);
+
+    if (isNaN(noteId)) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const existing = await prisma.dailyNote.findFirst({
+      where: { id: noteId },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const { noteDate, content, habitId } = req.body;
+    const dataToUpdate: Record<string, unknown> = {};
+
+    if (content !== undefined) {
+      if (typeof content !== 'string' || content.trim().length === 0 || content.trim().length > 1000) {
+        throw new AppError(422, 'INVALID_NOTE_CONTENT', 'Content must be between 1 and 1000 characters.');
+      }
+      dataToUpdate.content = content.trim();
+    }
+
+    if (noteDate !== undefined) {
+      if (typeof noteDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(noteDate) || isNaN(Date.parse(`${noteDate}T00:00:00.000Z`))) {
+        throw new AppError(422, 'INVALID_DATE_FORMAT', 'noteDate must be a valid string formatted as YYYY-MM-DD.');
+      }
+      dataToUpdate.noteDate = new Date(`${noteDate}T00:00:00.000Z`);
+    }
+
+    if (habitId !== undefined) {
+      if (habitId === null || habitId === '') {
+        dataToUpdate.habitId = null;
+      } else {
+        const hId = Number(habitId);
+        if (isNaN(hId)) {
+          throw new AppError(422, 'INVALID_HABIT_ID', 'habitId must be an integer.');
+        }
+        const habit = await prisma.habit.findFirst({
+          where: { id: hId },
+        });
+        if (!habit || habit.userId !== userId) {
+          throw new AppError(404, 'HABIT_NOT_FOUND', 'Habit not found.');
+        }
+        dataToUpdate.habitId = habit.id;
+      }
+    }
+
+    const updated = await prisma.dailyNote.update({
+      where: { id: noteId },
+      data: dataToUpdate,
+      include: {
+        habit: {
+          select: {
+            id: true,
+            title: true,
+            colorHex: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      id: updated.id,
+      habitId: updated.habitId,
+      habitTitle: updated.habit?.title ?? null,
+      colorHex: updated.habit?.colorHex ?? null,
+      noteDate: updated.noteDate.toISOString().split('T')[0],
+      timestamp: updated.createdAt.toISOString(),
+      content: updated.content,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteNote(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const noteId = parseInt(req.params.id, 10);
+
+    if (isNaN(noteId)) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    const existing = await prisma.dailyNote.findFirst({
+      where: { id: noteId },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      throw new AppError(404, 'NOTE_NOT_FOUND', 'Note not found.');
+    }
+
+    await prisma.dailyNote.delete({
+      where: { id: noteId },
+    });
+
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

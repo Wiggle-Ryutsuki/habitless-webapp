@@ -16,6 +16,9 @@ export function isValidDateRange(
     return false;
   }
 
-  return end.getTime() >= start.getTime();
+  const startUtc = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+  const endUtc = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+
+  return endUtc >= startUtc;
 }
 

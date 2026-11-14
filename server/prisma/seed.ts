@@ -64,7 +64,7 @@ async function main() {
     },
   });
 
-  // 4. Feature 2 Sample Habits for Participant 1
+  // 4. Feature 3 Sample Habits for Participant 1 (Aligned with _lab5_sec31_habitless.pdf, p. 3)
   const sampleHabits = [
     {
       title: 'Journal',
@@ -83,24 +83,56 @@ async function main() {
       targetCount: 20,
     },
     {
-      title: 'Read 20 mins',
-      description: 'Non-fiction or personal development',
+      title: 'Bathe + Moisturize',
+      description: 'Morning or evening skincare routine',
       colorHex: '#009688',
-      frequency: 'WEEKDAYS' as const,
-      daysOfWeek: [1, 2, 3, 4, 5],
-      targetCount: 15,
+      frequency: 'DAILY' as const,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      targetCount: 25,
     },
     {
-      title: 'Meditation',
-      description: 'Morning mindfulness breathing',
+      title: 'Eat a healthy breakfast',
+      description: 'Whole foods, oats, eggs, or fruit',
       colorHex: '#8bc34a',
+      frequency: 'DAILY' as const,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      targetCount: 20,
+    },
+    {
+      title: 'No alcohol',
+      description: 'Zero alcohol consumption',
+      colorHex: '#f44336',
+      frequency: 'DAILY' as const,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      targetCount: 20,
+    },
+    {
+      title: 'No concentrated sugar',
+      description: 'Avoid sweets, sodas, and candy',
+      colorHex: '#ad1457',
+      frequency: 'DAILY' as const,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      targetCount: 20,
+    },
+    {
+      title: 'Eat a light dinner',
+      description: 'Salad, soup, or light portion before 8 PM',
+      colorHex: '#ffc107',
+      frequency: 'DAILY' as const,
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      targetCount: 20,
+    },
+    {
+      title: 'Sleep for 7.5 hrs',
+      description: 'Restful uninterrupted sleep schedule',
+      colorHex: '#1565c0',
       frequency: 'DAILY' as const,
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
       targetCount: 25,
     },
   ];
 
-  const seededHabits = [];
+  const seededHabits: any[] = [];
   for (const h of sampleHabits) {
     const existing = await prisma.habit.findFirst({
       where: { userId: participant1.id, title: h.title },
@@ -135,30 +167,99 @@ async function main() {
     }
   }
 
-  // 5. Feature 2 Sample Today's Completion Log for Habit 1 (Journal)
-  const todayUtc = new Date();
-  todayUtc.setUTCHours(0, 0, 0, 0);
+  // 5. Multi-Day Completion Logs for Current Month
+  const now = new Date();
+  const currentYear = now.getUTCFullYear();
+  const currentMonthIndex = now.getUTCMonth();
+  const currentDay = now.getUTCDate();
 
-  if (seededHabits[0]) {
-    await prisma.habitLog.upsert({
-      where: {
-        habitId_logDate: {
-          habitId: seededHabits[0].id,
-          logDate: todayUtc,
+  // Pattern of completed days for Journal (up to day 18 / today)
+  const journalDays = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, currentDay].filter(
+    (d, i, arr) => d <= currentDay && arr.indexOf(d) === i
+  );
+  const exerciseDays = [1, 3, 4, 5, 7, 8, 10, 11, 13, 14, 15, 16, currentDay].filter(
+    (d, i, arr) => d <= currentDay && arr.indexOf(d) === i
+  );
+
+  const journalHabit = seededHabits.find((h) => h.title === 'Journal');
+  if (journalHabit) {
+    for (const day of journalDays) {
+      const logDate = new Date(Date.UTC(currentYear, currentMonthIndex, day));
+      await prisma.habitLog.upsert({
+        where: {
+          habitId_logDate: {
+            habitId: journalHabit.id,
+            logDate,
+          },
         },
-      },
-      update: {
-        completed: true,
-      },
-      create: {
-        habitId: seededHabits[0].id,
-        logDate: todayUtc,
-        completed: true,
-      },
-    });
+        update: { completed: true },
+        create: {
+          habitId: journalHabit.id,
+          logDate,
+          completed: true,
+        },
+      });
+    }
   }
 
-  console.log('Seed completed successfully: 1 Manager, 2 Participants, 4 Habits, 1 Today Log.');
+  const exerciseHabit = seededHabits.find((h) => h.title === 'Exercise');
+  if (exerciseHabit) {
+    for (const day of exerciseDays) {
+      const logDate = new Date(Date.UTC(currentYear, currentMonthIndex, day));
+      await prisma.habitLog.upsert({
+        where: {
+          habitId_logDate: {
+            habitId: exerciseHabit.id,
+            logDate,
+          },
+        },
+        update: { completed: true },
+        create: {
+          habitId: exerciseHabit.id,
+          logDate,
+          completed: true,
+        },
+      });
+    }
+  }
+
+  // 6. Reflection Notes (DailyNote entries)
+  const noAlcoholHabit = seededHabits.find((h) => h.title === 'No alcohol');
+  const sampleNotes = [
+    {
+      noteDay: Math.min(18, currentDay),
+      content: "I gotta make sure I don't let my alcohol intake get regular again.",
+      habitId: noAlcoholHabit?.id ?? null,
+    },
+    {
+      noteDay: Math.max(1, Math.min(17, currentDay - 1)),
+      content: 'Great energy after morning meditation and workout.',
+      habitId: exerciseHabit?.id ?? null,
+    },
+  ];
+
+  for (const sn of sampleNotes) {
+    const noteDate = new Date(Date.UTC(currentYear, currentMonthIndex, sn.noteDay));
+    const existing = await prisma.dailyNote.findFirst({
+      where: {
+        userId: participant1.id,
+        noteDate,
+        content: sn.content,
+      },
+    });
+    if (!existing) {
+      await prisma.dailyNote.create({
+        data: {
+          userId: participant1.id,
+          habitId: sn.habitId,
+          noteDate,
+          content: sn.content,
+        },
+      });
+    }
+  }
+
+  console.log('Seed completed successfully: 1 Manager, 2 Participants, 8 Habits, Multi-day logs & Reflection Notes.');
 }
 
 main()
