@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FrequencyType, Habit } from '../types/habit.js';
 import { updateHabit, archiveHabit, HabitApiError } from '../services/habits.service.js';
 import { ColorPicker, HABIT_COLOR_PALETTE } from './ColorPicker.js';
+import { DayOfWeekSelector, deriveFrequencyType, getInitialDaysOfWeek } from './DayOfWeekSelector.js';
 
 export interface HabitToEdit {
   id: number;
@@ -53,7 +54,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [colorHex, setColorHex] = useState(HABIT_COLOR_PALETTE[0].hex);
-  const [frequency, setFrequency] = useState<FrequencyType>('DAILY');
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [targetCount, setTargetCount] = useState(20);
@@ -71,7 +72,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
       setTitle(habit.title || '');
       setDescription(habit.description || '');
       setColorHex(habit.colorHex || HABIT_COLOR_PALETTE[0].hex);
-      setFrequency(habit.frequency || 'DAILY');
+      setSelectedDays(getInitialDaysOfWeek(habit.frequency, habit.daysOfWeek));
       setStartDate(formatDateForInput(habit.startDate) || new Date().toISOString().split('T')[0]);
       setEndDate(formatDateForInput(habit.endDate));
       setTargetCount(habit.targetCount || 20);
@@ -146,11 +147,13 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
     setGeneralError(null);
 
     try {
+      const derivedFrequency = deriveFrequencyType(selectedDays);
       const updated = await updateHabit(habit.id, {
         title: title.trim(),
         description: description.trim() ? description.trim() : null,
         colorHex,
-        frequency,
+        frequency: derivedFrequency,
+        daysOfWeek: selectedDays,
         startDate: startDate ? new Date(`${startDate}T00:00:00.000Z`).toISOString() : undefined,
         endDate: endDate ? new Date(`${endDate}T00:00:00.000Z`).toISOString() : null,
         targetCount,
@@ -357,71 +360,45 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
             <ColorPicker value={colorHex} onChange={setColorHex} id="edit-habit-color" />
           </div>
 
-          {/* Frequency & Target Count */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label
-                htmlFor="edit-habit-frequency"
-                style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#724319', marginBottom: '6px' }}
-              >
-                Frequency <span style={{ color: '#d88180' }}>*</span>
-              </label>
-              <select
-                id="edit-habit-frequency"
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value as FrequencyType)}
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #feeac7',
-                  backgroundColor: '#ffffff',
-                  color: '#724319',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <option value="DAILY">Daily</option>
-                <option value="WEEKDAYS">Weekdays (Mon–Fri)</option>
-                <option value="THREE_TIMES_WEEKLY">3x per Week</option>
-                <option value="WEEKLY">Weekly</option>
-                <option value="MONTHLY">Monthly</option>
-              </select>
-            </div>
+          {/* Frequency: Alarm-style day-of-week selection */}
+          <DayOfWeekSelector
+            selectedDays={selectedDays}
+            onChange={setSelectedDays}
+            id="edit-habit-frequency"
+          />
 
-            <div>
-              <label
-                htmlFor="edit-habit-target"
-                style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#724319', marginBottom: '6px' }}
-              >
-                Target Count (1–31) <span style={{ color: '#d88180' }}>*</span>
-              </label>
-              <input
-                id="edit-habit-target"
-                type="number"
-                min={1}
-                max={31}
-                value={targetCount}
-                onChange={(e) => setTargetCount(parseInt(e.target.value, 10) || 0)}
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: `1px solid ${fieldErrors.targetCount ? '#d88180' : '#feeac7'}`,
-                  backgroundColor: '#ffffff',
-                  color: '#724319',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
-              {fieldErrors.targetCount && (
-                <div role="alert" aria-live="polite" style={{ color: '#d88180', fontSize: '13px', marginTop: '4px' }}>
-                  {fieldErrors.targetCount}
-                </div>
-              )}
-            </div>
+          {/* Target Count */}
+          <div>
+            <label
+              htmlFor="edit-habit-target"
+              style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#724319', marginBottom: '6px' }}
+            >
+              Target Count (1–31) <span style={{ color: '#d88180' }}>*</span>
+            </label>
+            <input
+              id="edit-habit-target"
+              type="number"
+              min={1}
+              max={31}
+              value={targetCount}
+              onChange={(e) => setTargetCount(parseInt(e.target.value, 10) || 0)}
+              style={{
+                width: '100%',
+                height: '42px',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: `1px solid ${fieldErrors.targetCount ? '#d88180' : '#feeac7'}`,
+                backgroundColor: '#ffffff',
+                color: '#724319',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+              }}
+            />
+            {fieldErrors.targetCount && (
+              <div role="alert" aria-live="polite" style={{ color: '#d88180', fontSize: '13px', marginTop: '4px' }}>
+                {fieldErrors.targetCount}
+              </div>
+            )}
           </div>
 
           {/* Dates Schedule */}

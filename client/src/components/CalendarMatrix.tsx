@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CalendarHabit, CalendarMatrixResponse } from '../types/habit.js';
 import { fetchCalendarMatrix, toggleHabitCompletion } from '../services/habits.service.js';
+import { isHabitDueOnDay } from './DayOfWeekSelector.js';
 
 export interface CalendarMatrixProps {
   initialMonth?: number;
@@ -81,6 +82,37 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
 
   const isCurrentMonthAndYear =
     todayYear === currentYear && todayMonth === currentMonth;
+
+  // Active tracking day: defaults to today if current month, otherwise day 1
+  const [activeDay, setActiveDay] = useState<number>(() => {
+    if (initialMonth && initialYear) {
+      if (initialMonth === todayMonth && initialYear === todayYear) {
+        return todayDayNum;
+      }
+      return 1;
+    }
+    return todayDayNum;
+  });
+
+  // Keep activeDay in sync when month or year changes
+  useEffect(() => {
+    if (isCurrentMonthAndYear) {
+      setActiveDay(todayDayNum);
+    } else {
+      setActiveDay(1);
+    }
+  }, [currentMonth, currentYear, isCurrentMonthAndYear, todayDayNum]);
+
+  // Filter habits to only those due for the active day
+  const visibleHabits = useMemo(() => {
+    if (!matrixData) return [];
+    return matrixData.habits.filter((h) =>
+      isHabitDueOnDay(h, currentYear, currentMonth, activeDay)
+    );
+  }, [matrixData, currentYear, currentMonth, activeDay]);
+
+  const activeDate = new Date(currentYear, currentMonth - 1, activeDay);
+  const activeWeekdayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(activeDate);
 
   // Only today and past days are editable; tomorrow and subsequent days are future (disabled)
   const isFutureDay = (day: number) => {
@@ -408,18 +440,23 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
 
                 {Array.from({ length: matrixData.daysInMonth }, (_, i) => i + 1).map((d) => {
                   const isToday = isCurrentMonthAndYear && d === todayDayNum;
+                  const isActive = d === activeDay;
                   return (
                     <th
                       key={`day-num-${d}`}
                       aria-current={isToday ? 'date' : undefined}
+                      onClick={() => setActiveDay(d)}
+                      title={`Click to view habits due on Day ${d}`}
                       style={{
                         padding: '6px 2px',
-                        color: isToday ? '#ffffff' : '#724319',
-                        backgroundColor: isToday ? '#724319' : 'transparent',
+                        color: isToday || isActive ? '#ffffff' : '#724319',
+                        backgroundColor: isToday ? '#724319' : isActive ? '#d88180' : 'transparent',
                         fontWeight: 700,
                         fontSize: '12px',
                         minWidth: '26px',
                         borderRight: '1px solid #fcf7ed',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease',
                       }}
                     >
                       {d}
@@ -460,18 +497,26 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
 
                 {Array.from({ length: matrixData.daysInMonth }, (_, i) => i + 1).map((d, index) => {
                   const isToday = isCurrentMonthAndYear && d === todayDayNum;
+                  const isActive = d === activeDay;
                   const initial = matrixData.dayInitials[index] || 'M';
                   return (
                     <th
                       key={`day-initial-${d}`}
+                      onClick={() => setActiveDay(d)}
+                      title={`Click to view habits due on Day ${d}`}
                       style={{
                         padding: '4px 2px',
-                        color: isToday ? '#d88180' : '#724319',
+                        color: isToday ? '#d88180' : isActive ? '#724319' : '#724319',
                         fontWeight: 600,
                         fontSize: '11px',
-                        opacity: isToday ? 1 : 0.7,
-                        backgroundColor: isToday ? 'rgba(216, 129, 128, 0.15)' : 'transparent',
+                        opacity: isToday || isActive ? 1 : 0.7,
+                        backgroundColor: isToday
+                          ? 'rgba(216, 129, 128, 0.15)'
+                          : isActive
+                          ? 'rgba(216, 129, 128, 0.25)'
+                          : 'transparent',
                         borderRight: '1px solid #fcf7ed',
+                        cursor: 'pointer',
                       }}
                     >
                       {initial}
@@ -493,7 +538,51 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
             </thead>
 
             <tbody>
-              {matrixData.habits.map((h, habitIdx) => {
+              {visibleHabits.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={matrixData.daysInMonth + 2}
+                    style={{
+                      textAlign: 'center',
+                      padding: '36px 16px',
+                      backgroundColor: '#ffffff',
+                      color: '#724319',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '24px' }}>🌿</span>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '15px' }}>
+                        No habits scheduled for Day {activeDay} ({activeWeekdayName})
+                      </p>
+                      <p style={{ margin: 0, fontSize: '13px', opacity: 0.75 }}>
+                        {matrixData.habits.length > 0
+                          ? `You have ${matrixData.habits.length} habits scheduled on other days of the week.`
+                          : 'No habits created yet. Click "+ New Habit" to create one!'}
+                      </p>
+                      {onNewHabitClick && (
+                        <button
+                          type="button"
+                          onClick={onNewHabitClick}
+                          style={{
+                            marginTop: '8px',
+                            backgroundColor: '#724319',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 14px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          + New Habit
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                visibleHabits.map((h, habitIdx) => {
                 const habitColor = h.colorHex || '#ff9800';
                 return (
                   <tr
@@ -568,6 +657,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                     {Array.from({ length: matrixData.daysInMonth }, (_, i) => i + 1).map((d) => {
                       const isCompleted = !!h.days[String(d)];
                       const isToday = isCurrentMonthAndYear && d === todayDayNum;
+                      const isActive = d === activeDay;
                       const isFuture = isFutureDay(d);
 
                       return (
@@ -575,7 +665,11 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                           key={`cell-${h.habitId}-${d}`}
                           style={{
                             padding: '4px 2px',
-                            backgroundColor: isToday ? 'rgba(202, 209, 130, 0.18)' : 'transparent',
+                            backgroundColor: isToday
+                              ? 'rgba(202, 209, 130, 0.18)'
+                              : isActive
+                              ? 'rgba(254, 234, 199, 0.45)'
+                              : 'transparent',
                             borderRight: '1px solid #fcf7ed',
                           }}
                         >
@@ -649,7 +743,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

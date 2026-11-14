@@ -177,14 +177,20 @@ describe('In-Calendar Habit Edit Modal (UI-05)', () => {
       />
     );
 
-    const freqSelect = screen.getByLabelText(/Frequency/);
-    expect((freqSelect as HTMLSelectElement).value).toBe('WEEKDAYS');
+    const freqSummary = screen.getByTestId('frequency-summary');
+    expect(freqSummary).toHaveTextContent('5x per week');
 
     const endInput = screen.getByLabelText(/End Date/);
     expect((endInput as HTMLInputElement).value).toBe('2026-06-30');
 
-    // Change frequency to WEEKLY and endDate to 2026-12-31
-    fireEvent.change(freqSelect, { target: { value: 'WEEKLY' } });
+    // Change frequency to Weekly (only Monday selected) and endDate to 2026-12-31
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Tuesday' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Wednesday' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Thursday' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Friday' }));
+
+    expect(screen.getByTestId('frequency-summary')).toHaveTextContent('Weekly');
+
     fireEvent.change(endInput, { target: { value: '2026-12-31' } });
 
     const saveBtn = screen.getByRole('button', { name: 'Save Changes' });
@@ -195,6 +201,7 @@ describe('In-Calendar Habit Edit Modal (UI-05)', () => {
         101,
         expect.objectContaining({
           frequency: 'WEEKLY',
+          daysOfWeek: [1],
           endDate: expect.stringContaining('2026-12-31'),
         })
       );

@@ -245,4 +245,66 @@ describe('Calendar Desktop Matrix Component (UI-04)', () => {
       expect(mockToggle).not.toHaveBeenCalled();
     }
   });
+
+  it('filters habits so only habits due for that day appear in the habit bar on the calendar', async () => {
+    // March 2021:
+    // Day 1 is Monday (ISO day 1)
+    // Day 6 is Saturday (ISO day 6)
+    const scheduleMatrixData: CalendarMatrixResponse = {
+      month: 3,
+      year: 2021,
+      daysInMonth: 31,
+      dayInitials: Array(31).fill('M'),
+      habits: [
+        {
+          habitId: 301,
+          title: 'Monday Only Yoga',
+          colorHex: '#009688',
+          frequency: 'WEEKLY',
+          daysOfWeek: [1], // Monday only
+          targetCount: 4,
+          goalAchievedCount: 1,
+          days: {},
+        },
+        {
+          habitId: 302,
+          title: 'Weekend Hike',
+          colorHex: '#ff9800',
+          frequency: 'CUSTOM_DAYS',
+          daysOfWeek: [6, 7], // Sat, Sun only
+          targetCount: 8,
+          goalAchievedCount: 2,
+          days: {},
+        },
+      ],
+    };
+
+    vi.spyOn(HabitsService, 'fetchCalendarMatrix').mockResolvedValue(scheduleMatrixData);
+
+    render(
+      <CalendarMatrix
+        initialMonth={3}
+        initialYear={2021}
+        onEditHabit={vi.fn()}
+      />
+    );
+
+    // Initial active day in March 2021 defaults to Day 1 (Monday)
+    await waitFor(() => {
+      expect(screen.getByText('Monday Only Yoga')).toBeInTheDocument();
+    });
+    // Weekend Hike is NOT due on Monday -> should not appear!
+    expect(screen.queryByText('Weekend Hike')).not.toBeInTheDocument();
+
+    // Click Day 6 header (Saturday)
+    const day6Header = screen.getByRole('columnheader', { name: '6' });
+    fireEvent.click(day6Header);
+
+    // Now Weekend Hike IS due on Saturday -> should appear!
+    await waitFor(() => {
+      expect(screen.getByText('Weekend Hike')).toBeInTheDocument();
+    });
+    // Monday Only Yoga is NOT due on Saturday -> should not appear!
+    expect(screen.queryByText('Monday Only Yoga')).not.toBeInTheDocument();
+  });
 });
