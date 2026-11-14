@@ -306,5 +306,16 @@ describe('Calendar Desktop Matrix Component (UI-04)', () => {
     });
     // Monday Only Yoga is NOT due on Saturday -> should not appear!
     expect(screen.queryByText('Monday Only Yoga')).not.toBeInTheDocument();
+
+    // Click Day 2 header (Tuesday) where NO habits are scheduled
+    const day2Header = screen.getByRole('columnheader', { name: '2' });
+    fireEvent.click(day2Header);
+
+    // Displays empty day message with Mark Twain's quote
+    await waitFor(() => {
+      expect(screen.getByText(/No habits scheduled for Day 2/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/The secret of getting ahead is getting started/)).toBeInTheDocument();
+    expect(screen.getByText(/Mark Twain/)).toBeInTheDocument();
   });
 });

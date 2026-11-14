@@ -213,99 +213,6 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
         </div>
       )}
 
-      {/* Calendar Header Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: '#ffffff',
-          padding: '16px 20px',
-          borderRadius: '10px',
-          boxShadow: '0 2px 8px rgba(114, 67, 25, 0.06)',
-          border: '1px solid #feeac7',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            type="button"
-            onClick={handlePrevMonth}
-            aria-label="Previous month"
-            style={{
-              height: '36px',
-              width: '36px',
-              borderRadius: '6px',
-              border: '1px solid #feeac7',
-              backgroundColor: '#ffffff',
-              color: '#724319',
-              fontSize: '16px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-            }}
-          >
-            ‹
-          </button>
-
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '20px',
-              color: '#724319',
-              fontWeight: 700,
-              minWidth: '160px',
-              textAlign: 'center',
-            }}
-          >
-            {monthTitle}
-          </h2>
-
-          <button
-            type="button"
-            onClick={handleNextMonth}
-            aria-label="Next month"
-            style={{
-              height: '36px',
-              width: '36px',
-              borderRadius: '6px',
-              border: '1px solid #feeac7',
-              backgroundColor: '#ffffff',
-              color: '#724319',
-              fontSize: '16px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-            }}
-          >
-            ›
-          </button>
-        </div>
-
-        {onNewHabitClick && (
-          <button
-            type="button"
-            onClick={onNewHabitClick}
-            style={{
-              backgroundColor: '#724319',
-              color: '#ffffff',
-              border: 'none',
-              padding: '10px 18px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(114, 67, 25, 0.2)',
-            }}
-          >
-            + New Habit
-          </button>
-        )}
-      </div>
-
       {/* Error State */}
       {errorMessage && (
         <div
@@ -342,40 +249,86 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
         </div>
       )}
 
-      {/* Loading Skeleton */}
-      {isLoading && !matrixData && (
+      {/* Connected Calendar Box */}
+      <div
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(114, 67, 25, 0.08)',
+          border: '1px solid #feeac7',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Calendar Header Row */}
         <div
-          aria-busy="true"
-          aria-label="Loading calendar matrix"
           style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             backgroundColor: '#ffffff',
-            borderRadius: '10px',
-            padding: '32px',
-            textAlign: 'center',
-            color: '#724319',
-            border: '1px solid #feeac7',
+            padding: '16px 20px',
+            borderBottom: '1px solid #feeac7',
           }}
         >
-          <div style={{ fontSize: '15px', fontWeight: 600 }}>Loading habit tracking calendar...</div>
-        </div>
-      )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              aria-label="Previous month"
+              style={{
+                height: '36px',
+                width: '36px',
+                borderRadius: '6px',
+                border: '1px solid #feeac7',
+                backgroundColor: '#ffffff',
+                color: '#724319',
+                fontSize: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+              }}
+            >
+              ‹
+            </button>
 
-      {/* Empty State: 0 Habits */}
-      {!isLoading && matrixData && matrixData.habits.length === 0 && (
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '10px',
-            padding: '48px 24px',
-            textAlign: 'center',
-            border: '1px solid #feeac7',
-            boxShadow: '0 2px 8px rgba(114, 67, 25, 0.04)',
-          }}
-        >
-          <h3 style={{ margin: '0 0 8px', color: '#724319', fontSize: '18px' }}>No habits created yet</h3>
-          <p style={{ margin: '0 0 16px', color: '#724319', opacity: 0.75, fontSize: '14px' }}>
-            Click &quot;+ New Habit&quot; to define your first habit and start tracking daily progress.
-          </p>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '20px',
+                color: '#724319',
+                fontWeight: 700,
+                minWidth: '160px',
+                textAlign: 'center',
+              }}
+            >
+              {monthTitle}
+            </h2>
+
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              aria-label="Next month"
+              style={{
+                height: '36px',
+                width: '36px',
+                borderRadius: '6px',
+                border: '1px solid #feeac7',
+                backgroundColor: '#ffffff',
+                color: '#724319',
+                fontSize: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+              }}
+            >
+              ›
+            </button>
+          </div>
+
           {onNewHabitClick && (
             <button
               type="button"
@@ -384,39 +337,83 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                 backgroundColor: '#724319',
                 color: '#ffffff',
                 border: 'none',
-                padding: '10px 20px',
+                padding: '10px 18px',
                 borderRadius: '6px',
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(114, 67, 25, 0.2)',
               }}
             >
               + New Habit
             </button>
           )}
         </div>
-      )}
 
-      {/* Desktop Calendar Grid Matrix */}
-      {matrixData && matrixData.habits.length > 0 && (
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '10px',
-            boxShadow: '0 4px 16px rgba(114, 67, 25, 0.08)',
-            border: '1px solid #feeac7',
-            overflowX: 'auto',
-          }}
-        >
-          <table
+        {/* Loading Skeleton */}
+        {isLoading && !matrixData && (
+          <div
+            aria-busy="true"
+            aria-label="Loading calendar matrix"
             style={{
-              width: '100%',
-              borderCollapse: 'collapse',
+              padding: '48px 24px',
               textAlign: 'center',
-              fontSize: '13px',
-              minWidth: '960px',
+              color: '#724319',
             }}
           >
+            <div style={{ fontSize: '15px', fontWeight: 600 }}>Loading habit tracking calendar...</div>
+          </div>
+        )}
+
+        {/* Empty State: 0 Habits */}
+        {!isLoading && matrixData && matrixData.habits.length === 0 && (
+          <div
+            style={{
+              padding: '48px 24px',
+              textAlign: 'center',
+            }}
+          >
+            <h3 style={{ margin: '0 0 8px', color: '#724319', fontSize: '18px' }}>No habits created yet</h3>
+            <p style={{ margin: '0 0 16px', color: '#724319', opacity: 0.75, fontSize: '14px' }}>
+              Click &quot;+ New Habit&quot; to define your first habit and start tracking daily progress.
+            </p>
+            {onNewHabitClick && (
+              <button
+                type="button"
+                onClick={onNewHabitClick}
+                style={{
+                  backgroundColor: '#724319',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                + New Habit
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Desktop Calendar Grid Matrix Table */}
+        {matrixData && matrixData.habits.length > 0 && (
+          <div
+            style={{
+              overflowX: 'auto',
+            }}
+          >
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                textAlign: 'center',
+                fontSize: '13px',
+                minWidth: '960px',
+              }}
+            >
             <thead>
               {/* Header Row 1: Day numbers */}
               <tr style={{ backgroundColor: '#fffdf9', borderBottom: '1px solid #feeac7' }}>
@@ -554,10 +551,8 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                       <p style={{ margin: 0, fontWeight: 700, fontSize: '15px' }}>
                         No habits scheduled for Day {activeDay} ({activeWeekdayName})
                       </p>
-                      <p style={{ margin: 0, fontSize: '13px', opacity: 0.75 }}>
-                        {matrixData.habits.length > 0
-                          ? `You have ${matrixData.habits.length} habits scheduled on other days of the week.`
-                          : 'No habits created yet. Click "+ New Habit" to create one!'}
+                      <p style={{ margin: 0, fontSize: '13px', opacity: 0.85, fontStyle: 'italic' }}>
+                        &ldquo;The secret of getting ahead is getting started.&rdquo; — Mark Twain
                       </p>
                       {onNewHabitClick && (
                         <button
@@ -749,6 +744,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
         </div>
       )}
     </div>
-  );
+  </div>
+);
 };
 
