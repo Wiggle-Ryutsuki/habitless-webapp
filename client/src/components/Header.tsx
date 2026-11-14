@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -57,11 +58,11 @@ export const Header: React.FC = () => {
             {isParticipant ? (
               <>
                 <Link to="/calendar" style={{
-                  color: 'var(--walnut)',
+                  color: location.pathname === '/calendar' ? 'var(--walnut)' : 'var(--color-text-muted)',
                   padding: '0.5rem 0.75rem',
                   borderRadius: '6px',
                   fontSize: '0.9375rem',
-                  fontWeight: 600,
+                  fontWeight: location.pathname === '/calendar' ? 600 : 500,
                 }}>
                   Habit Calendar
                 </Link>
@@ -69,26 +70,44 @@ export const Header: React.FC = () => {
                   to="/dashboard"
                   onClick={triggerUnderConstruction}
                   style={{
-                    color: 'var(--color-text-muted)',
+                    color: location.pathname === '/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
                     padding: '0.5rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.9375rem',
-                    fontWeight: 500,
+                    fontWeight: location.pathname === '/dashboard' ? 600 : 500,
                   }}
                 >
                   Dashboard
                 </Link>
               </>
             ) : (
-              <Link to="/manager" style={{
-                color: 'var(--walnut)',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '6px',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-              }}>
-                Programs
-              </Link>
+              <>
+                <Link
+                  to="/manager"
+                  style={{
+                    color: location.pathname === '/manager' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: location.pathname === '/manager' ? 600 : 500,
+                  }}
+                >
+                  Programs
+                </Link>
+                <Link
+                  to="/dashboard"
+                  onClick={triggerUnderConstruction}
+                  style={{
+                    color: location.pathname === '/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: location.pathname === '/dashboard' ? 600 : 500,
+                  }}
+                >
+                  Dashboard
+                </Link>
+              </>
             )}
           </nav>
       </div>
@@ -225,13 +244,25 @@ export const Header: React.FC = () => {
                   </Link>
                 </>
               ) : (
-                <Link
-                  to="/manager"
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={{ padding: '8px 0', fontWeight: 600, color: 'var(--walnut)' }}
-                >
-                  Programs
-                </Link>
+                <>
+                  <Link
+                    to="/manager"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{ padding: '8px 0', fontWeight: 600, color: 'var(--walnut)' }}
+                  >
+                    Programs
+                  </Link>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      triggerUnderConstruction();
+                    }}
+                    style={{ padding: '8px 0', color: 'var(--color-text-muted)' }}
+                  >
+                    Dashboard
+                  </Link>
+                </>
               )}
             </nav>
 

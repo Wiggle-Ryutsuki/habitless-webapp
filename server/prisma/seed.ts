@@ -259,7 +259,105 @@ async function main() {
     }
   }
 
-  console.log('Seed completed successfully: 1 Manager, 2 Participants, 8 Habits, Multi-day logs & Reflection Notes.');
+  // 7. Feature 4 Published Seed Challenge Program: "30-Day Wellness Challenge"
+  const demoManagerUser = await prisma.user.findUnique({
+    where: { email: 'manager@habitless.internal' },
+  });
+
+  if (demoManagerUser) {
+    const seedStartDate = new Date(Date.UTC(2026, 10, 1, 0, 0, 0)); // Nov 1, 2026
+    const seedEndDate = new Date(Date.UTC(2026, 10, 30, 23, 59, 59)); // Nov 30, 2026
+
+    let wellnessChallenge = await prisma.challengeProgram.findFirst({
+      where: {
+        managerId: demoManagerUser.id,
+        title: '30-Day Wellness Challenge',
+      },
+    });
+
+    if (wellnessChallenge) {
+      wellnessChallenge = await prisma.challengeProgram.update({
+        where: { id: wellnessChallenge.id },
+        data: {
+          category: 'Wellness',
+          description: 'Establish foundational daily routines for hydration, mindfulness, and physical movement.',
+          startDate: seedStartDate,
+          endDate: seedEndDate,
+          status: 'PUBLISHED',
+        },
+      });
+    } else {
+      wellnessChallenge = await prisma.challengeProgram.create({
+        data: {
+          managerId: demoManagerUser.id,
+          title: '30-Day Wellness Challenge',
+          category: 'Wellness',
+          description: 'Establish foundational daily routines for hydration, mindfulness, and physical movement.',
+          startDate: seedStartDate,
+          endDate: seedEndDate,
+          status: 'PUBLISHED',
+        },
+      });
+    }
+
+    const seedActivities = [
+      {
+        title: 'Daily Hydration (2L)',
+        description: 'Drink at least 2 liters of pure water daily.',
+        frequency: 'DAILY' as const,
+        daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+        targetCount: 1,
+      },
+      {
+        title: 'Morning Meditation (10 min)',
+        description: '10 minutes of guided mindful breathing.',
+        frequency: 'DAILY' as const,
+        daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+        targetCount: 1,
+      },
+      {
+        title: '30 min Cardio (3x/week)',
+        description: 'Brisk walking, jogging, cycling, or swimming.',
+        frequency: 'THREE_TIMES_WEEKLY' as const,
+        daysOfWeek: [1, 3, 5],
+        targetCount: 3,
+      },
+    ];
+
+    for (const act of seedActivities) {
+      const existingAct = await prisma.programActivity.findFirst({
+        where: {
+          programId: wellnessChallenge.id,
+          title: act.title,
+        },
+      });
+
+      if (existingAct) {
+        await prisma.programActivity.update({
+          where: { id: existingAct.id },
+          data: {
+            description: act.description,
+            frequency: act.frequency,
+            daysOfWeek: act.daysOfWeek,
+            targetCount: act.targetCount,
+          },
+        });
+      } else {
+        await prisma.programActivity.create({
+          data: {
+            programId: wellnessChallenge.id,
+            title: act.title,
+            description: act.description,
+            frequency: act.frequency,
+            daysOfWeek: act.daysOfWeek,
+            targetCount: act.targetCount,
+          },
+        });
+      }
+    }
+  }
+
+  console.log('Seed completed successfully: 1 Manager, 2 Participants, 8 Habits, Multi-day logs, Reflection Notes, and Published Challenge Program.');
 }
 
 main()

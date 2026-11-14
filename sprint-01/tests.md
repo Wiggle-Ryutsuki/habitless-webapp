@@ -2,7 +2,7 @@
 
 **Document ID**: TEST-HL-01  
 **Version**: 1.5  
-**Status**: Planned Test Specification Baseline (Strict MVP Scope - Unified Habit Calendar Architecture)  
+**Status**: Passed Test Specification Baseline (Strict MVP Scope - Unified Habit Calendar Architecture)  
 **Parent Project**: HabitLess - Habit and Activity Tracking System  
 **Source Brief Reference**: `HabitLess App Design: Habit and Activity Tracking System (pp. 1–5)`  
 **Scope Boundary**: Strictly High Priority / Low Effort [MVP] Features Only  
@@ -33,36 +33,36 @@ HabitLess employs a multi-tiered automated testing hierarchy designed to validat
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **UT-01** | Unit | BR-02, FR-05 | Fixed habit palette color validator | Accepts the 8 official habit palette colors (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`); rejects arbitrary hex colors | `server/tests/sprint-01/palette-validator.test.ts` | Planned |
-| **UT-02** | Unit | BR-05, FR-04 | Date range invariant validator | Accepts `endDate >= startDate`; rejects `endDate < startDate` | `server/tests/sprint-01/schedule-validator.test.ts` | Planned |
-| **UT-03** | Unit | FR-06 | Frequency schedule generator | Correctly determines if a habit is active on a given date (Daily, Weekdays, 3x/week, Weekly, Monthly) | `server/tests/sprint-01/frequency.test.ts` | Planned |
-| **UT-04** | Unit | FR-11 | Monthly Goals tracker calculation | Aggregates total completed instances for a habit within the target month | `server/tests/sprint-01/goals.test.ts` | Planned |
-| **API-01** | API | FR-03 | `GET /api/health` and `GET /api/ready` | Returns HTTP 200 with DB status; returns HTTP 503 if DB is unreachable | `server/tests/sprint-01/health.api.test.ts` | Planned |
-| **API-02** | API | FR-01, AC-01 | `POST /api/auth/register` (Participant) | Creates user with `role=PARTICIPANT`, hashes password, returns HTTP 201 and token | `server/tests/sprint-01/auth.api.test.ts` | Planned |
-| **API-03** | API | FR-01 | `POST /api/auth/register` (Duplicate email) | Returns HTTP 409 Conflict when registering an existing email address | `server/tests/sprint-01/auth.api.test.ts` | Planned |
-| **API-04** | API | FR-02, AC-02 | `POST /api/auth/login` (Valid & Invalid) | Returns HTTP 200 on valid credentials; returns HTTP 401 on incorrect password | `server/tests/sprint-01/auth.api.test.ts` | Planned |
-| **API-05** | API | FR-04, FR-05, AC-03 | `POST /api/habits` (Valid habit creation) | Saves habit with fixed habit color (e.g. `#ff9800`), frequency, and target count; returns HTTP 201 | `server/tests/sprint-01/habits.api.test.ts` | Planned |
-| **API-06** | API | BR-02, AC-04 | `POST /api/habits` (Invalid color rejection) | Returns HTTP 422 Unprocessable Entity when submitting non-palette hex color | `server/tests/sprint-01/habits.api.test.ts` | Planned |
-| **API-07** | API | BR-01 | `GET /api/habits` (User data isolation) | Returns only habits belonging to the authenticated participant | `server/tests/sprint-01/habits.api.test.ts` | Planned |
-| **API-08** | API | FR-10, AC-07 | `PUT /api/habits/:id` (In-calendar habit edit) | Updates habit title, target count, and settings; returns HTTP 200 with updated DTO | `server/tests/sprint-01/habits.api.test.ts` | Planned |
-| **API-09** | API | FR-07, FR-08, AC-05 | `POST /api/tracking/log` (Idempotent toggle) | Creates completion record; subsequent toggle deletes/unchecks idempotently | `server/tests/sprint-01/tracking.api.test.ts` | Planned |
-| **API-10** | API | FR-09, FR-11, AC-06 | `GET /api/tracking/calendar` | Returns 31-day month grid with completion cells in habit colors, target counts, and goal achieved sums | `server/tests/sprint-01/calendar.api.test.ts` | Planned |
-| **API-11** | API | FR-12, AC-08 | `POST /api/tracking/notes` | Creates timestamped reflection note; returns HTTP 201 | `server/tests/sprint-01/notes.api.test.ts` | Planned |
-| **API-12** | API | FR-13, FR-14 | `POST /api/manager/programs` | Program Manager creates challenge with activities; returns HTTP 201 | `server/tests/sprint-01/manager.api.test.ts` | Planned |
-| **API-13** | API | BR-01 | `POST /api/manager/programs` (Role barrier) | Returns HTTP 403 Forbidden if called by a user with role `PARTICIPANT` | `server/tests/sprint-01/manager.api.test.ts` | Planned |
-| **API-14** | API | FR-15, AC-09 | `PUT /api/manager/programs/:id/deploy` | Deploys challenge, transitions status to `PUBLISHED`, returns web invite link | `server/tests/sprint-01/manager.api.test.ts` | Planned |
-| **API-15** | API | FR-15 | `POST /api/challenges/:id/join` | Participant enrolls in deployed challenge; returns HTTP 201 | `server/tests/sprint-01/challenges.api.test.ts` | Planned |
-| **UI-01** | UI | FR-01, FR-02 | Auth Form Component | Renders role selector, email/password inputs, and handles submission | `client/tests/sprint-01/AuthForm.test.tsx` | Planned |
-| **UI-02** | UI | FR-05, AC-04 | Color Swatch Picker Component | Renders 8 fixed habit palette swatches; enforces single palette selection | `client/tests/sprint-01/ColorPicker.test.tsx` | Planned |
-| **UI-03** | UI | FR-07, FR-08, AC-05 | Habit Calendar Side Habits & Active Day Toggle | Renders side list of daily habits, illuminates active day column in date header, handles check toggle, updates completion state | `client/tests/sprint-01/TodayChecklist.test.tsx` | Planned |
-| **UI-04** | UI | FR-09, FR-11, AC-06 | Calendar Desktop Matrix Component | Renders days 1–31 with day initials, sticky habit column, goal column, and color-coded checkmarks | `client/tests/sprint-01/CalendarMatrix.test.tsx` | Planned |
-| **UI-05** | UI | FR-10, AC-07 | In-Calendar Habit Edit Modal | Opens from habit row edit button; handles title, color, and settings modification | `client/tests/sprint-01/EditHabitModal.test.tsx` | Planned |
-| **UI-06** | UI | FR-12, AC-08 | Calendar Notes Feed Component | Renders timestamped notes list and handles `+ New Note` submission | `client/tests/sprint-01/CalendarNotes.test.tsx` | Planned |
-| **UI-07** | UI | FR-13, FR-14, FR-15 | Program Builder Component | Manages dynamic activity rows, date schedules, and deploy to web action | `client/tests/sprint-01/ProgramBuilder.test.tsx` | Planned |
-| **UI-08** | UI | FR-07, AC-06 | Dashboard Under-Construction Notification | Clicking Dashboard nav link or accessing `/dashboard` displays 'Dashboard is still under construction' notification toast and card | `client/tests/sprint-01/DashboardPlaceholder.test.tsx` | Planned |
-| **E2E-01** | E2E | AC-01, AC-03, AC-05, AC-06 | Complete Participant Tracking Journey | Register &rarr; Land on `/calendar` &rarr; Create habit &rarr; Check off in illuminated column &rarr; Click Dashboard and verify 'still under construction' popup | `e2e/sprint-01/participant-journey.spec.ts` | Planned |
-| **E2E-02** | E2E | AC-06, AC-07, AC-08 | In-Calendar Tracking, Editing & Notes | View calendar desktop &rarr; Toggle past cell &rarr; Edit habit title &rarr; Add note &rarr; Verify | `e2e/sprint-01/calendar-edit.spec.ts` | Planned |
-| **E2E-03** | E2E | AC-02, AC-09 | Program Manager Lifecycle Journey | Login as Manager &rarr; Create challenge &rarr; Deploy to web &rarr; Join via invite link | `e2e/sprint-01/manager-journey.spec.ts` | Planned |
+| **UT-01** | Unit | BR-02, FR-05 | Fixed habit palette color validator | Accepts the 8 official habit palette colors (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`); rejects arbitrary hex colors | `server/tests/sprint-01/palette-validator.test.ts` | Passed |
+| **UT-02** | Unit | BR-05, FR-04 | Date range invariant validator | Accepts `endDate >= startDate`; rejects `endDate < startDate` | `server/tests/sprint-01/schedule-validator.test.ts` | Passed |
+| **UT-03** | Unit | FR-06 | Frequency schedule generator | Correctly determines if a habit is active on a given date (Daily, Weekdays, 3x/week, Weekly, Monthly) | `server/tests/sprint-01/frequency.test.ts` | Passed |
+| **UT-04** | Unit | FR-11 | Monthly Goals tracker calculation | Aggregates total completed instances for a habit within the target month | `server/tests/sprint-01/goals.test.ts` | Passed |
+| **API-01** | API | FR-03 | `GET /api/health` and `GET /api/ready` | Returns HTTP 200 with DB status; returns HTTP 503 if DB is unreachable | `server/tests/sprint-01/health.api.test.ts` | Passed |
+| **API-02** | API | FR-01, AC-01 | `POST /api/auth/register` (Participant) | Creates user with `role=PARTICIPANT`, hashes password, returns HTTP 201 and token | `server/tests/sprint-01/auth.api.test.ts` | Passed |
+| **API-03** | API | FR-01 | `POST /api/auth/register` (Duplicate email) | Returns HTTP 409 Conflict when registering an existing email address | `server/tests/sprint-01/auth.api.test.ts` | Passed |
+| **API-04** | API | FR-02, AC-02 | `POST /api/auth/login` (Valid & Invalid) | Returns HTTP 200 on valid credentials; returns HTTP 401 on incorrect password | `server/tests/sprint-01/auth.api.test.ts` | Passed |
+| **API-05** | API | FR-04, FR-05, AC-03 | `POST /api/habits` (Valid habit creation) | Saves habit with fixed habit color (e.g. `#ff9800`), frequency, and target count; returns HTTP 201 | `server/tests/sprint-01/habits.api.test.ts` | Passed |
+| **API-06** | API | BR-02, AC-04 | `POST /api/habits` (Invalid color rejection) | Returns HTTP 422 Unprocessable Entity when submitting non-palette hex color | `server/tests/sprint-01/habits.api.test.ts` | Passed |
+| **API-07** | API | BR-01 | `GET /api/habits` (User data isolation) | Returns only habits belonging to the authenticated participant | `server/tests/sprint-01/habits.api.test.ts` | Passed |
+| **API-08** | API | FR-10, AC-07 | `PUT /api/habits/:id` (In-calendar habit edit) | Updates habit title, target count, and settings; returns HTTP 200 with updated DTO | `server/tests/sprint-01/habits.api.test.ts` | Passed |
+| **API-09** | API | FR-07, FR-08, AC-05 | `POST /api/tracking/log` (Idempotent toggle) | Creates completion record; subsequent toggle deletes/unchecks idempotently | `server/tests/sprint-01/tracking.api.test.ts` | Passed |
+| **API-10** | API | FR-09, FR-11, AC-06 | `GET /api/tracking/calendar` | Returns 31-day month grid with completion cells in habit colors, target counts, and goal achieved sums | `server/tests/sprint-01/calendar.api.test.ts` | Passed |
+| **API-11** | API | FR-12, AC-08 | `POST /api/tracking/notes` | Creates timestamped reflection note; returns HTTP 201 | `server/tests/sprint-01/notes.api.test.ts` | Passed |
+| **API-12** | API | FR-13, FR-14 | `POST /api/manager/programs` | Program Manager creates challenge with activities; returns HTTP 201 | `server/tests/sprint-01/manager.api.test.ts` | Passed |
+| **API-13** | API | BR-01 | `POST /api/manager/programs` (Role barrier) | Returns HTTP 403 Forbidden if called by a user with role `PARTICIPANT` | `server/tests/sprint-01/manager.api.test.ts` | Passed |
+| **API-14** | API | FR-15, AC-09 | `PUT /api/manager/programs/:id/deploy` | Deploys challenge, transitions status to `PUBLISHED`, returns web invite link | `server/tests/sprint-01/manager.api.test.ts` | Passed |
+| **API-15** | API | FR-15 | `POST /api/challenges/:id/join` | Participant enrolls in deployed challenge; returns HTTP 201 | `server/tests/sprint-01/challenges.api.test.ts` | Passed |
+| **UI-01** | UI | FR-01, FR-02 | Auth Form Component | Renders role selector, email/password inputs, and handles submission | `client/tests/sprint-01/AuthForm.test.tsx` | Passed |
+| **UI-02** | UI | FR-05, AC-04 | Color Swatch Picker Component | Renders 8 fixed habit palette swatches; enforces single palette selection | `client/tests/sprint-01/ColorPicker.test.tsx` | Passed |
+| **UI-03** | UI | FR-07, FR-08, AC-05 | Habit Calendar Side Habits & Active Day Toggle | Renders side list of daily habits, illuminates active day column in date header, handles check toggle, updates completion state | `client/tests/sprint-01/TodayChecklist.test.tsx` | Passed |
+| **UI-04** | UI | FR-09, FR-11, AC-06 | Calendar Desktop Matrix Component | Renders days 1–31 with day initials, sticky habit column, goal column, and color-coded checkmarks | `client/tests/sprint-01/CalendarMatrix.test.tsx` | Passed |
+| **UI-05** | UI | FR-10, AC-07 | In-Calendar Habit Edit Modal | Opens from habit row edit button; handles title, color, and settings modification | `client/tests/sprint-01/EditHabitModal.test.tsx` | Passed |
+| **UI-06** | UI | FR-12, AC-08 | Calendar Notes Feed Component | Renders timestamped notes list and handles `+ New Note` submission | `client/tests/sprint-01/CalendarNotes.test.tsx` | Passed |
+| **UI-07** | UI | FR-13, FR-14, FR-15 | Program Builder Component | Manages dynamic activity rows, date schedules, and deploy to web action | `client/tests/sprint-01/ProgramBuilder.test.tsx` | Passed |
+| **UI-08** | UI | FR-07, AC-06 | Dashboard Under-Construction Notification | Clicking Dashboard nav link or accessing `/dashboard` displays 'Dashboard is still under construction' notification toast and card | `client/tests/sprint-01/DashboardPlaceholder.test.tsx` | Passed |
+| **E2E-01** | E2E | AC-01, AC-03, AC-05, AC-06 | Complete Participant Tracking Journey | Register &rarr; Land on `/calendar` &rarr; Create habit &rarr; Check off in illuminated column &rarr; Click Dashboard and verify 'still under construction' popup | `e2e/sprint-01/participant-journey.spec.ts` | Passed |
+| **E2E-02** | E2E | AC-06, AC-07, AC-08 | In-Calendar Tracking, Editing & Notes | View calendar desktop &rarr; Toggle past cell &rarr; Edit habit title &rarr; Add note &rarr; Verify | `e2e/sprint-01/calendar-edit.spec.ts` | Passed |
+| **E2E-03** | E2E | AC-02, AC-09 | Program Manager Lifecycle Journey | Login as Manager &rarr; Create challenge &rarr; Deploy to web &rarr; Join via invite link | `e2e/sprint-01/manager-journey.spec.ts` | Passed |
 
 ---
 
@@ -128,15 +128,15 @@ HabitLess employs a multi-tiered automated testing hierarchy designed to validat
 
 ---
 
-## 6. Planned Results Summary
+## 6. Test Results Summary
 
 | Test Suite | Total Planned Tests | Target Status |
 | :--- | :--- | :--- |
-| Server Unit Tests | 4 | Planned |
-| Server API Integration Tests | 15 | Planned |
-| Client UI Component Tests | 8 | Planned |
-| Playwright E2E Tests | 3 | Planned |
-| **Total Automated Tests** | **30** | **Planned Baseline** |
+| Server Unit Tests | 4 | Passed |
+| Server API Integration Tests | 15 | Passed |
+| Client UI Component Tests | 8 | Passed |
+| Playwright E2E Tests | 3 | Passed |
+| **Total Automated Tests** | **30** | **Passed** |
 
 ---
 

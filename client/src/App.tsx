@@ -6,6 +6,7 @@ import { RegisterPage } from './pages/RegisterPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { HabitCalendarPage } from './pages/HabitCalendarPage.js';
 import { ManagerPage } from './pages/ManagerPage.js';
+import { ChallengeInvitationPage } from './pages/ChallengeInvitationPage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 
 export const App: React.FC = () => {
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/challenges/:id" element={<ChallengeInvitationPage />} />
 
           <Route
             path="/calendar"
@@ -28,7 +30,7 @@ export const App: React.FC = () => {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['PARTICIPANT']}>
+              <ProtectedRoute allowedRoles={['PARTICIPANT', 'PROGRAM_MANAGER']}>
                 <DashboardPage />
               </ProtectedRoute>
             }

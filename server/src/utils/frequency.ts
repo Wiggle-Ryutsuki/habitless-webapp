@@ -84,3 +84,27 @@ export function isHabitScheduledForDate(
   }
 }
 
+export function deriveFrequencyFromDays(selectedDays: number[]): string {
+  const count = selectedDays.length;
+  if (count >= 7) return 'DAILY';
+  if (count === 5 && [1, 2, 3, 4, 5].every((d) => selectedDays.includes(d))) {
+    return 'WEEKDAYS';
+  }
+  if (count === 3 && [1, 3, 5].every((d) => selectedDays.includes(d))) {
+    return 'THREE_TIMES_WEEKLY';
+  }
+  if (count === 1) return 'WEEKLY';
+  return 'CUSTOM_DAYS';
+}
+
+export function getDaysFromFrequency(frequency?: string | null, daysOfWeek?: number[] | null): number[] {
+  if (Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
+    return [...daysOfWeek].sort((a, b) => a - b);
+  }
+  if (frequency === 'WEEKDAYS') return [1, 2, 3, 4, 5];
+  if (frequency === 'THREE_TIMES_WEEKLY') return [1, 3, 5];
+  if (frequency === 'WEEKLY') return [1];
+  return [1, 2, 3, 4, 5, 6, 7];
+}
+
+

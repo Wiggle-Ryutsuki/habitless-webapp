@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header.js';
+import { useAuth } from '../context/AuthContext.js';
 
 export const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const [toastVisible, setToastVisible] = useState(true);
+  const isParticipant = user?.role === 'PARTICIPANT';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,11 +92,12 @@ export const DashboardPage: React.FC = () => {
               margin: '0 auto 2rem auto',
             }}
           >
-            The Participant Dashboard is currently under construction. Please use the
-            Habit Calendar to track your daily habits.
+            {isParticipant
+              ? 'The Participant Dashboard is currently under construction. Please use the Habit Calendar to track your daily habits.'
+              : 'The Program Manager Dashboard is currently under construction. Please use the Programs tab to manage and deploy your challenges.'}
           </p>
           <Link
-            to="/calendar"
+            to={isParticipant ? '/calendar' : '/manager'}
             style={{
               display: 'inline-block',
               backgroundColor: 'var(--walnut)',
@@ -113,7 +117,7 @@ export const DashboardPage: React.FC = () => {
               e.currentTarget.style.backgroundColor = 'var(--walnut)';
             }}
           >
-            Go to Habit Calendar
+            {isParticipant ? 'Go to Habit Calendar' : 'Go to Programs'}
           </Link>
         </div>
       </main>
