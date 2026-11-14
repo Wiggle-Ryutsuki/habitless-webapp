@@ -21,18 +21,26 @@ enum FrequencyType {
   CUSTOM_DAYS
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  role         Role     @default(PARTICIPANT)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum ProgramStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
-  habits       Habit[]
-  dailyNotes   DailyNote[]
+model User {
+  id              Int                 @id @default(autoincrement())
+  email           String              @unique
+  passwordHash    String
+  fullName        String
+  role            Role                @default(PARTICIPANT)
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  habits          Habit[]
+  dailyNotes      DailyNote[]
+  enrollments     ProgramEnrollment[]
+  managedPrograms ChallengeProgram[]  @relation("ManagerPrograms")
 
   @@map("users")
 }
@@ -50,7 +58,8 @@ model Habit {
   endDate     DateTime?
   targetCount Int           @default(20)
   isActive    Boolean       @default(true)
-  programId   Int?          // Reserved for Feature 4 Challenge Program integration
+  programId   Int?          // Link to challenge program
+  program     ChallengeProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -58,6 +67,7 @@ model Habit {
   notes       DailyNote[]
 
   @@index([userId, isActive])
+  @@index([programId])
   @@map("habits")
 }
 
@@ -91,3 +101,56 @@ model DailyNote {
   @@map("daily_notes")
 }
 
+model ChallengeProgram {
+  id                  Int                 @id @default(autoincrement())
+  managerId           Int
+  manager             User                @relation("ManagerPrograms", fields: [managerId], references: [id], onDelete: Restrict)
+  title               String
+  description         String?
+  category            String              // e.g. "Wellness", "Fitness", "Mindfulness"
+  startDate           DateTime
+  endDate             DateTime
+  status              ProgramStatus       @default(DRAFT)
+  previouslyPublished Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  habits      Habit[]
+  activities  ProgramActivity[]
+  enrollments ProgramEnrollment[]
+
+  @@index([managerId])
+  @@index([status])
+  @@index([category])
+  @@map("challenge_programs")
+}
+
+model ProgramActivity {
+  id          Int              @id @default(autoincrement())
+  programId   Int
+  program     ChallengeProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  frequency   FrequencyType    @default(DAILY)
+  daysOfWeek  Int[]            @default([1, 2, 3, 4, 5, 6, 7])
+  targetCount Int              @default(1)
+  createdAt   DateTime         @default(now())
+
+  @@index([programId])
+  @@map("program_activities")
+}
+
+model ProgramEnrollment {
+  id            Int              @id @default(autoincrement())
+  programId     Int
+  program       ChallengeProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  participantId Int
+  participant   User             @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  enrolledAt    DateTime         @default(now())
+  isActive      Boolean          @default(true)
+
+  @@unique([programId, participantId])
+  @@index([programId])
+  @@index([participantId])
+  @@map("program_enrollments")
+}

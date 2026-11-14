@@ -129,12 +129,16 @@ export interface DayOfWeekSelectorProps {
   selectedDays: number[];
   onChange: (days: number[]) => void;
   id?: string;
+  label?: string;
+  compact?: boolean;
 }
 
 export const DayOfWeekSelector: React.FC<DayOfWeekSelectorProps> = ({
   selectedDays,
   onChange,
   id = 'habit-frequency-selector',
+  label = 'Frequency',
+  compact = false,
 }) => {
   const handleToggleDay = (dayNum: number) => {
     if (selectedDays.includes(dayNum)) {
@@ -160,28 +164,28 @@ export const DayOfWeekSelector: React.FC<DayOfWeekSelectorProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '8px',
+          marginBottom: compact ? '4px' : '8px',
         }}
       >
         <label
           id={`${id}-label`}
           style={{
-            fontSize: '14px',
+            fontSize: compact ? '13px' : '14px',
             fontWeight: 600,
             color: '#724319',
           }}
         >
-          Frequency <span style={{ color: '#d88180' }}>*</span>
+          {label} <span style={{ color: '#d88180' }}>*</span>
         </label>
         <span
           data-testid="frequency-summary"
           aria-live="polite"
           style={{
-            fontSize: '13px',
+            fontSize: compact ? '12px' : '13px',
             fontWeight: 700,
             color: '#724319',
             backgroundColor: '#feeac7',
-            padding: '2px 10px',
+            padding: compact ? '1px 8px' : '2px 10px',
             borderRadius: '12px',
             border: '1px solid #ead3ab',
           }}
@@ -190,18 +194,26 @@ export const DayOfWeekSelector: React.FC<DayOfWeekSelectorProps> = ({
         </span>
       </div>
 
-      {/* Days of week alarm buttons */}
+      {/* Days of week segmented bar (single-row table with 7 cells) */}
       <div
         role="group"
         aria-labelledby={`${id}-label`}
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: '6px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          width: '100%',
+          border: '1px solid #d5c3aa',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(114, 67, 25, 0.08)',
         }}
       >
-        {DAYS_OF_WEEK.map((item) => {
+        {DAYS_OF_WEEK.map((item, index) => {
           const isSelected = selectedDays.includes(item.day);
+          const nextIsSelected =
+            index < DAYS_OF_WEEK.length - 1 && selectedDays.includes(DAYS_OF_WEEK[index + 1].day);
+
           return (
             <button
               key={item.day}
@@ -212,22 +224,25 @@ export const DayOfWeekSelector: React.FC<DayOfWeekSelectorProps> = ({
               title={item.fullName}
               onClick={() => handleToggleDay(item.day)}
               style={{
-                flex: 1,
-                minWidth: '36px',
-                height: '40px',
-                borderRadius: '20px',
-                border: isSelected ? '1px solid #724319' : '1px solid #feeac7',
+                border: 'none',
+                borderRight:
+                  index < DAYS_OF_WEEK.length - 1
+                    ? isSelected && nextIsSelected
+                      ? '1px solid rgba(255, 255, 255, 0.25)'
+                      : '1px solid #d5c3aa'
+                    : 'none',
+                height: compact ? '34px' : '40px',
                 backgroundColor: isSelected ? '#724319' : '#ffffff',
                 color: isSelected ? '#ffffff' : '#724319',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: compact ? '12px' : '13px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 0.15s ease, color 0.15s ease',
                 outline: 'none',
-                boxShadow: isSelected ? '0 2px 6px rgba(114, 67, 25, 0.2)' : 'none',
+                padding: 0,
               }}
             >
               {item.label}
