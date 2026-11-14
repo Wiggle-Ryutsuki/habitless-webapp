@@ -21,6 +21,8 @@ server/prisma/*.db
 *docs/sprint-01/_lab5_sec31_habitless.pdf
 *sprint-01/_lab5_sec31_habitless.pdf
 docs/features/
+*Student-Guide-GCP-Deployment-and+CI+CD-V1_1.pdf
+*SE_Lab_5_updated.pdf
 
 # test output
 test-results/
