@@ -12,7 +12,7 @@ test.describe('Feature 2 & 3: Participant Complete Tracking Journey (E2E-01)', (
     // 2. Fill registration form as PARTICIPANT
     await page.getByLabel(/full name/i).fill('Taylor Tracking Tester');
     await page.getByLabel(/email address/i).fill(uniqueEmail);
-    await page.getByLabel(/password/i).fill(password);
+    await page.getByLabel(/^password/i).fill(password);
     await page.getByLabel(/participant/i).check();
 
     // 3. Submit

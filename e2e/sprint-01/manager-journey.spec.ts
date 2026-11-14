@@ -10,23 +10,27 @@ test.describe('Feature 4: Program Manager Challenge Lifecycle & Participant Join
     await page.goto('/register');
     await page.getByLabel(/full name/i).fill('Dr. Taylor Challenge PM');
     await page.getByLabel(/email address/i).fill(managerEmail);
-    await page.getByLabel(/password/i).fill(password);
+    await page.getByLabel(/^password/i).fill(password);
     await page.getByLabel(/program manager/i).check();
     await page.getByRole('button', { name: /create account/i }).click();
 
     // 2. Verified post-auth navigation to /manager
     await page.waitForURL('**/manager');
-    await expect(page.getByText('Challenge Programs')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Challenge Programs' })).toBeVisible();
 
     // 3. Open Challenge Builder Modal
-    await page.getByRole('button', { name: /\+ create challenge/i }).click();
+    await page.getByRole('button', { name: /\+ create challenge/i }).first().click();
     await expect(page.getByText('Create a New Challenge')).toBeVisible();
 
     // 4. Fill in Challenge Builder Form
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
     await page.getByLabel(/program title/i).fill('30-Day Total Wellness');
     await page.getByLabel(/category/i).selectOption('Wellness');
-    await page.getByLabel(/start date/i).fill('2026-12-01');
-    await page.getByLabel(/end date/i).fill('2026-12-30');
+    await page.getByLabel(/start date/i).fill(`${currentYear}-${currentMonth}-01`);
+    await page.getByLabel(/end date/i).fill(`${currentYear}-${currentMonth}-28`);
 
     // Fill in Activity 1
     await page.getByLabel(/activity 1 title/i).fill('Daily Hydration (2L)');
@@ -34,20 +38,16 @@ test.describe('Feature 4: Program Manager Challenge Lifecycle & Participant Join
     // Add Activity 2
     await page.getByRole('button', { name: /\+ add activity/i }).click();
     await page.getByLabel(/activity 2 title/i).fill('30 min Cardio Walk');
-    // Configure Activity 2 schedule by toggling days of week
-    const tuesdayBtn = page.getByRole('checkbox', { name: 'Tuesday' }).nth(1);
-    const thursdayBtn = page.getByRole('checkbox', { name: 'Thursday' }).nth(1);
-    const saturdayBtn = page.getByRole('checkbox', { name: 'Saturday' }).nth(1);
-    const sundayBtn = page.getByRole('checkbox', { name: 'Sunday' }).nth(1);
-    await tuesdayBtn.click();
-    await thursdayBtn.click();
-    await saturdayBtn.click();
-    await sundayBtn.click();
+    // Configure Activity 2 schedule by toggling days of week (keep Saturday active for today)
+    const mondayBtn = page.getByRole('checkbox', { name: 'Monday' }).nth(1);
+    const wednesdayBtn = page.getByRole('checkbox', { name: 'Wednesday' }).nth(1);
+    await mondayBtn.click();
+    await wednesdayBtn.click();
 
     // 4. Save Draft
     await page.getByRole('button', { name: /save as draft/i }).click();
     await expect(page.getByText('30-Day Total Wellness')).toBeVisible();
-    await expect(page.getByText('DRAFT')).toBeVisible();
+    await expect(page.getByText('DRAFT', { exact: true })).toBeVisible();
 
     // 5. Deploy / Publish to Web from draft row
     const publishBtn = page.getByRole('button', { name: /^publish$/i }).first();
@@ -56,7 +56,7 @@ test.describe('Feature 4: Program Manager Challenge Lifecycle & Participant Join
     await page.getByRole('button', { name: /publish to web/i }).click();
 
     // 6. Verify status transitions to PUBLISHED and invite link is displayed
-    await expect(page.getByText('PUBLISHED')).toBeVisible();
+    await expect(page.getByText('PUBLISHED', { exact: true })).toBeVisible();
     const linkElement = page.locator('code', { hasText: '/challenges/' });
     await expect(linkElement).toBeVisible();
     const invitePath = await linkElement.textContent();
@@ -70,7 +70,7 @@ test.describe('Feature 4: Program Manager Challenge Lifecycle & Participant Join
     await page.goto('/register');
     await page.getByLabel(/full name/i).fill('Sam Participant');
     await page.getByLabel(/email address/i).fill(participantEmail);
-    await page.getByLabel(/password/i).fill(password);
+    await page.getByLabel(/^password/i).fill(password);
     await page.getByLabel(/participant/i).check();
     await page.getByRole('button', { name: /create account/i }).click();
     await page.waitForURL('**/calendar');

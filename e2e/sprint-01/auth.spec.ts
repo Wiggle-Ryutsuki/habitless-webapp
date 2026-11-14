@@ -12,20 +12,20 @@ test.describe('Feature 1: Authentication & RBAC E2E Flows', () => {
     // 2. Fill registration form as PARTICIPANT
     await page.getByLabel(/full name/i).fill('Playwright Participant');
     await page.getByLabel(/email address/i).fill(uniqueEmail);
-    await page.getByLabel(/password/i).fill(password);
+    await page.getByLabel(/^password/i).fill(password);
     await page.getByLabel(/participant/i).check();
 
     // 3. Submit
     await page.getByRole('button', { name: /create account/i }).click();
 
-    // 4. Verify redirected to /dashboard and header displays user name and role badge
-    await page.waitForURL('**/dashboard');
+    // 4. Verify redirected to /calendar and header displays user name and role badge
+    await page.waitForURL('**/calendar');
     await expect(page.getByText('Playwright Participant')).toBeVisible();
-    await expect(page.getByText(/participant/i)).toBeVisible();
+    await expect(page.getByText('Participant', { exact: true })).toBeVisible();
 
     // 5. Test session persistence on page reload (verifying no race-condition redirect to /login)
     await page.reload();
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/calendar');
     await expect(page.getByText('Playwright Participant')).toBeVisible();
 
     // 6. Log out
@@ -39,12 +39,12 @@ test.describe('Feature 1: Authentication & RBAC E2E Flows', () => {
 
     // 2. Submit manager seed credentials
     await page.getByLabel(/email address/i).fill('manager@habitless.internal');
-    await page.getByLabel(/password/i).fill('ManagerPass123!');
+    await page.getByLabel(/^password/i).fill('ManagerPass123!');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // 3. Verify redirected to /manager
     await page.waitForURL('**/manager');
-    await expect(page.getByText(/program manager workspace/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Challenge Programs' })).toBeVisible();
     await expect(page.getByText(/dr. jordan wells/i)).toBeVisible();
 
     // 4. Log out
