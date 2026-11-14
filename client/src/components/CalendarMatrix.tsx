@@ -427,12 +427,13 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                     padding: '10px 14px',
                     color: '#724319',
                     fontWeight: 700,
+                    fontSize: '15px',
                     width: '210px',
                     minWidth: '210px',
                     borderRight: '1px solid #feeac7',
                   }}
                 >
-                  HABITS
+                  Today&apos;s Habits
                 </th>
 
                 {Array.from({ length: matrixData.daysInMonth }, (_, i) => i + 1).map((d) => {
@@ -707,7 +708,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                       );
                     })}
 
-                    {/* Goal Achieved Column (Sticky Right) */}
+                    {/* Goal Achieved Column (Sticky Right: Progress / Target) */}
                     <td
                       style={{
                         position: 'sticky',
@@ -718,9 +719,9 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                         borderLeft: '1px solid #feeac7',
                         fontWeight: 600,
                         color: '#724319',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      <span style={{ marginRight: '6px', opacity: 0.85 }}>{h.targetCount}</span>
                       <span
                         style={{
                           display: 'inline-block',
@@ -735,6 +736,8 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                       >
                         {h.goalAchievedCount}
                       </span>
+                      <span style={{ margin: '0 4px', opacity: 0.6 }}>/</span>
+                      <span style={{ opacity: 0.85 }}>{h.targetCount}</span>
                     </td>
                   </tr>
                 );

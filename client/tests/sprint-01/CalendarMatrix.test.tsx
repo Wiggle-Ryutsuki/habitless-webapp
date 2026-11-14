@@ -47,7 +47,7 @@ describe('Calendar Desktop Matrix Component (UI-04)', () => {
     vi.clearAllMocks();
   });
 
-  it('renders month title, 1–31 header columns, day initials, sticky HABITS and GOAL ACHIEVED columns', async () => {
+  it('renders month title, 1–31 header columns, day initials, sticky Today\'s Habits and GOAL ACHIEVED columns', async () => {
     vi.spyOn(HabitsService, 'fetchCalendarMatrix').mockResolvedValue(sampleMatrixData);
     const mockOnEdit = vi.fn();
 
@@ -65,7 +65,7 @@ describe('Calendar Desktop Matrix Component (UI-04)', () => {
     });
 
     // Verify column headers
-    expect(screen.getByText('HABITS')).toBeInTheDocument();
+    expect(screen.getByText(/Today'?s Habits/i)).toBeInTheDocument();
     expect(screen.getByText('GOAL ACHIEVED')).toBeInTheDocument();
 
     // Verify days 1 and 31 exist
