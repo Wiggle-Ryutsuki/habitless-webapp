@@ -66,6 +66,7 @@ jobs:
           python3 -m unittest deploy/tests/test_smoke.py
 
       - name: Install and test backend
+        working-directory: server
         env:
           DATABASE_URL: postgresql://habitless_user:habitless_password@localhost:5432/habitless_dev?schema=public
           JWT_SECRET: habitless-super-secret-jwt-key-2026-minimum-32-chars
@@ -76,17 +77,18 @@ jobs:
           PORT: 3000
           NODE_ENV: test
         run: |
-          npm --prefix server ci
-          npx --prefix server prisma generate
-          npx --prefix server prisma migrate deploy
-          npm --prefix server run db:seed
-          npm --prefix server test
+          npm ci
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run db:seed
+          npm test
 
       - name: Install, test and build frontend
+        working-directory: client
         run: |
-          npm --prefix client ci --legacy-peer-deps
-          npm --prefix client test
-          npm --prefix client run build
+          npm ci --legacy-peer-deps
+          npm test
+          npm run build
 
       - name: Verify the Docker build
         run: |
