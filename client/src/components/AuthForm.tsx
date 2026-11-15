@@ -115,6 +115,19 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         }}>
           Habit and Activity Tracking System
         </p>
+        <div style={{
+          display: 'inline-block',
+          marginTop: '0.5rem',
+          padding: '0.2rem 0.65rem',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: 'var(--walnut)',
+          backgroundColor: 'var(--papaya-whip)',
+          borderRadius: '12px',
+          border: '1px solid var(--golden-sand)',
+        }}>
+          v1.1 (Continuous Deployment Verified)
+        </div>
       </div>
 
       {/* Top Banner Error Display */}
