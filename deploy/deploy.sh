@@ -96,6 +96,7 @@ if [ "${DRY_RUN}" = "1" ]; then
   run_cmd gcloud sql instances create "${SQL_INSTANCE}" \
     --database-version=POSTGRES_16 \
     --tier=db-f1-micro \
+    --edition=enterprise \
     --region="${REGION}" \
     --storage-size=10GB \
     --no-storage-auto-increase \
@@ -108,6 +109,7 @@ else
     run_cmd gcloud sql instances create "${SQL_INSTANCE}" \
       --database-version=POSTGRES_16 \
       --tier=db-f1-micro \
+      --edition=enterprise \
       --region="${REGION}" \
       --storage-size=10GB \
       --no-storage-auto-increase \
@@ -166,7 +168,7 @@ if [ "${DRY_RUN}" = "1" ]; then
   run_cmd gcloud secrets create "${SECRET_DEMO_PASS}" --replication-policy="automatic" --project="${PROJECT_ID}"
   run_cmd gcloud secrets add-iam-policy-binding "${SECRET_DB_URL}" --member="serviceAccount:${SA_EMAIL}" --role="roles/secretmanager.secretAccessor" --project="${PROJECT_ID}"
 else
-  DB_PASSWORD=$(openssl rand -base64 24 | tr -d '\n')
+  DB_PASSWORD=$(openssl rand -hex 16)
   JWT_SECRET=$(openssl rand -hex 32 | tr -d '\n')
   ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d '\n')
   DEMO_PASSWORD=$(openssl rand -base64 16 | tr -d '\n')
@@ -176,9 +178,14 @@ else
       --instance="${SQL_INSTANCE}" \
       --password="${DB_PASSWORD}" \
       --project="${PROJECT_ID}"
+  else
+    run_cmd gcloud sql users set-password "${DB_USER}" \
+      --instance="${SQL_INSTANCE}" \
+      --password="${DB_PASSWORD}" \
+      --project="${PROJECT_ID}"
   fi
 
-  DB_URL_VALUE="postgresql://${DB_USER}:${DB_PASSWORD}@/${DB_NAME}?host=/cloudsql/${PROJECT_ID}:${REGION}:${SQL_INSTANCE}&schema=public"
+  DB_URL_VALUE="postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}?host=/cloudsql/${PROJECT_ID}:${REGION}:${SQL_INSTANCE}&schema=public"
 
   create_or_update_secret() {
     local sec_name="$1"
@@ -216,7 +223,7 @@ if [ "${DRY_RUN}" = "1" ]; then
     --image="${IMAGE_TAG}" \
     --region="${REGION}" \
     --service-account="${SA_EMAIL}" \
-    --add-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
+    --set-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
     --set-secrets="DATABASE_URL=${SECRET_DB_URL}:latest,ADMIN_PASSWORD=${SECRET_ADMIN_PASS}:latest,DEMO_USER_PASSWORD=${SECRET_DEMO_PASS}:latest" \
     --set-env-vars="NODE_ENV=production,SEED_DEMO_DATA=true" \
     --command="sh" \
@@ -229,7 +236,7 @@ else
       --image="${IMAGE_TAG}" \
       --region="${REGION}" \
       --service-account="${SA_EMAIL}" \
-      --add-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
+      --set-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
       --set-secrets="DATABASE_URL=${SECRET_DB_URL}:latest,ADMIN_PASSWORD=${SECRET_ADMIN_PASS}:latest,DEMO_USER_PASSWORD=${SECRET_DEMO_PASS}:latest" \
       --set-env-vars="NODE_ENV=production,SEED_DEMO_DATA=true" \
       --command="sh" \
@@ -259,7 +266,7 @@ run_cmd gcloud run deploy "${SERVICE_NAME}" \
   --max-instances=3 \
   --memory=512Mi \
   --service-account="${SA_EMAIL}" \
-  --add-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
+  --set-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
   --set-secrets="DATABASE_URL=${SECRET_DB_URL}:latest,JWT_SECRET=${SECRET_JWT}:latest" \
   --set-env-vars="NODE_ENV=production,TZ=Asia/Bangkok,PORT=3000" \
   --project="${PROJECT_ID}"
