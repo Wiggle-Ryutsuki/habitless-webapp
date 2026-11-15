@@ -268,7 +268,7 @@ run_cmd gcloud run deploy "${SERVICE_NAME}" \
   --service-account="${SA_EMAIL}" \
   --set-cloudsql-instances="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}" \
   --set-secrets="DATABASE_URL=${SECRET_DB_URL}:latest,JWT_SECRET=${SECRET_JWT}:latest" \
-  --set-env-vars="NODE_ENV=production,TZ=Asia/Bangkok,PORT=3000" \
+  --set-env-vars="NODE_ENV=production,TZ=Asia/Bangkok" \
   --project="${PROJECT_ID}"
 
 echo "=========================================================================="
