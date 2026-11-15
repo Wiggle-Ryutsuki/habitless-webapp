@@ -1,0 +1,122 @@
+name: Deploy demo
+
+# ==============================================================================
+# HabitLess — Continuous Deployment Pipeline (Episode 7 & Requirement R-07)
+# ==============================================================================
+# Triggers automatically upon merge into main (or via manual workflow_dispatch).
+# Authenticates with Google Cloud via Workload Identity Federation (WIF, no keys),
+# builds and tags the container image with the Git commit SHA, executes the
+# database migration job, rolls out the Cloud Run revision, runs smoke tests,
+# and outputs the release summary.
+#
+# Supports rollback via `image_tag` input (Episode 8), skipping build and test.
+#
+# References:
+#   - Student Guide Episode 7: Auto deploy and smoke test
+#   - SE Lab 5: R-07 (Automated deployment from main), R-08 (Rollback by SHA)
+# ==============================================================================
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag (commit SHA) to deploy (leave empty to build and deploy latest commit)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: test
+    if: github.event.inputs.image_tag == ''
+    uses: ./.github/workflows/ci-docker.yml
+
+  deploy:
+    name: deploy
+    needs: [test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: demo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker authentication for Artifact Registry
+        if: github.event.inputs.image_tag == ''
+        run: |
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Determine Image Tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            TAG="${{ github.event.inputs.image_tag }}"
+            echo "mode=rollback" >> $GITHUB_OUTPUT
+          else
+            TAG="${{ github.sha }}"
+            echo "mode=release" >> $GITHUB_OUTPUT
+          fi
+          echo "image_tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Resolved deployment image tag: ${TAG}"
+
+      - name: Build and push container image
+        if: steps.tag.outputs.mode == 'release'
+        run: |
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/habitless/habitless:${{ steps.tag.outputs.image_tag }}"
+          docker build -t "${IMAGE}" .
+          docker push "${IMAGE}"
+
+      - name: Verify image, migrate and deploy
+        id: release
+        run: |
+          PROJECT_ID="${{ vars.GCP_PROJECT_ID }}" \
+          REGION="${{ vars.GCP_REGION }}" \
+          IMAGE_TAG="${{ steps.tag.outputs.image_tag }}" \
+          bash deploy/release.sh
+
+      - name: Get Service URL
+        id: url
+        run: |
+          SERVICE_URL=$(gcloud run services describe habitless --region="${{ vars.GCP_REGION }}" --project="${{ vars.GCP_PROJECT_ID }}" --format='value(status.url)')
+          echo "service_url=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "Service URL is: ${SERVICE_URL}"
+
+      - name: Smoke test public URL
+        env:
+          SMOKE_EMAIL: ${{ vars.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: |
+          python3 deploy/smoke_test.py "${{ steps.url.outputs.service_url }}"
+
+      - name: Record deployment in Job Summary
+        if: always() && steps.url.outputs.service_url != ''
+        run: |
+          IMAGE_URI="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/habitless/habitless:${{ steps.tag.outputs.image_tag }}"
+          DIGEST=$(gcloud artifacts docker images describe "${IMAGE_URI}" --project="${{ vars.GCP_PROJECT_ID }}" --format='value(image_summary.digest)' 2>/dev/null || echo "N/A")
+          echo "### HabitLess Demo Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit Image Tag**: \`${{ steps.tag.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Digest**: \`${DIGEST}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service URL**: [${{ steps.url.outputs.service_url }}](${{ steps.url.outputs.service_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Mode**: \`${{ steps.tag.outputs.mode }}\`" >> $GITHUB_STEP_SUMMARY
