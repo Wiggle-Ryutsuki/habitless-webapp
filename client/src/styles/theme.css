@@ -1,0 +1,56 @@
+:root {
+  /* HabitLess Warm Natural Theme Tokens */
+  --walnut: #724319;
+  --light-coral: #d88180;
+  --powder-blush: #f7b1b0;
+  --papaya-whip: #feeac7;
+  --golden-sand: #cad182;
+
+  /* Semantic UI Tokens */
+  --color-surface: #ffffff;
+  --color-surface-tint: #feeac7;
+  --color-text-main: #2d1c0b;
+  --color-text-muted: #6b5e51;
+  --color-border-subtle: #feeac7;
+  --color-focus-ring: rgba(114, 67, 25, 0.35);
+  --color-error: #b3261e;
+  --color-error-bg: #fdf2f2;
+
+  /* Gradients */
+  --gradient-right: linear-gradient(90deg, #724319, #d88180, #f7b1b0, #feeac7, #cad182);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--color-text-main);
+  background-color: var(--powder-blush);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--walnut);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+
+button {
+  cursor: pointer;
+}
+

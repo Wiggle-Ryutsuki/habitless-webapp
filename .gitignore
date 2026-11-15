@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# env & secrets
+.env
+*.env
+!.env.example
+
+# build output
+dist/
+build/
+
+# prisma
+server/prisma/*.db
+
+# logs & OS
+*.log
+.DS_Store
+
+# lab files
+*docs/sprint-01/_lab5_sec31_habitless.pdf
+*sprint-01/_lab5_sec31_habitless.pdf
+docs/features/
+*Student-Guide-GCP-Deployment-and+CI+CD-V1_1.pdf
+*SE_Lab_5_updated.pdf
+
+# test output
+test-results/
+playwright-report/
+scripts/
+
+# python
+__pycache__/
+*.py[cod]
