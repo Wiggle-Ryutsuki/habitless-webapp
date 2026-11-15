@@ -28,7 +28,6 @@ docs/features/
 test-results/
 playwright-report/
 scripts/
-*playwright.config.ts
 
 # python
 __pycache__/
