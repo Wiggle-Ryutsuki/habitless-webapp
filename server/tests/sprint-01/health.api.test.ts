@@ -12,7 +12,7 @@ describe('Health and Readiness API (API-01)', () => {
     const res = await request(app).get('/api/health');
 
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe('ok');
+    expect(res.body.status).toBe('intentionally_broken');
     expect(res.body.service).toBe('HabitLess API');
     expect(res.body.timestamp).toBeDefined();
     expect(new Date(res.body.timestamp).toISOString()).toBe(res.body.timestamp);
