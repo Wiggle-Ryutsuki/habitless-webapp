@@ -1,0 +1,93 @@
+name: CI & Docker Build
+
+# ==============================================================================
+# HabitLess — Pull Request Quality Gate (Episode 4 & Requirement R-05)
+# ==============================================================================
+# Runs tests and Docker build on every Pull Request into staging and main.
+# Required checks must pass before merging is permitted (Episode 6).
+#
+# References:
+#   - Student Guide Episode 4: CI on pull requests
+#   - SE Lab 5: R-05 (Automated Tests on PR), C-01 (Passing test-and-docker)
+# ==============================================================================
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [main, staging, staging-1]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-docker:
+    name: test-and-docker
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: habitless_user
+          POSTGRES_PASSWORD: habitless_password
+          POSTGRES_DB: habitless_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v24)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Python (v3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check the deploy scripts
+        run: |
+          bash -n deploy/*.sh deploy/tests/*.sh
+          bash deploy/tests/test_deploy_stub.sh
+          bash deploy/tests/test_release_stub.sh
+          python3 -m unittest deploy/tests/test_smoke.py
+
+      - name: Install and test backend
+        env:
+          DATABASE_URL: postgresql://habitless_user:habitless_password@localhost:5432/habitless_dev?schema=public
+          JWT_SECRET: habitless-super-secret-jwt-key-2026-minimum-32-chars
+          ADMIN_PASSWORD: AdminInitial123!
+          DEMO_USER_PASSWORD: DemoInitial123!
+          SEED_DEMO_DATA: "true"
+          CLIENT_URL: http://localhost:5173
+          PORT: 3000
+          NODE_ENV: test
+        run: |
+          npm --prefix server ci
+          npx --prefix server prisma generate
+          npx --prefix server prisma migrate deploy
+          npm --prefix server run db:seed
+          npm --prefix server test
+
+      - name: Install, test and build frontend
+        run: |
+          npm --prefix client ci --legacy-peer-deps
+          npm --prefix client test
+          npm --prefix client run build
+
+      - name: Verify the Docker build
+        run: |
+          docker build -t habitless:ci .
