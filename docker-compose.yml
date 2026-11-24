@@ -2,20 +2,71 @@ services:
   db:
     image: postgres:16-alpine
     container_name: habitless-db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: habitless_user
-      POSTGRES_PASSWORD: habitless_password
-      POSTGRES_DB: habitless_dev
+      POSTGRES_USER: ${POSTGRES_USER:-habitless_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-habitless_password}
+      POSTGRES_DB: ${POSTGRES_DB:-habitless_dev}
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U habitless_user -d habitless_dev"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-habitless_user} -d ${POSTGRES_DB:-habitless_dev}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  migrate:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: habitless-migrate
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-habitless_user}:${POSTGRES_PASSWORD:-habitless_password}@db:5432/${POSTGRES_DB:-habitless_dev}?schema=public
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-AdminInitial123!}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-DemoInitial123!}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+    command: ["sh", "-c", "npx prisma migrate deploy && npm run db:seed"]
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: habitless-server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Bangkok
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-habitless_user}:${POSTGRES_PASSWORD:-habitless_password}@db:5432/${POSTGRES_DB:-habitless_dev}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-habitless-super-secret-jwt-key-2026-minimum-32-chars}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    container_name: habitless-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "5173:80"
 
 volumes:
-  pgdata:
-
+  postgres_data:

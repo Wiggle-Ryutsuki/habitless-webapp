@@ -4,11 +4,24 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ManagerPass123!';
-  const defaultUserPassword = process.env.DEMO_USER_PASSWORD || 'ParticipantPass123!';
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const adminPassword = process.env.ADMIN_PASSWORD || (!isProduction ? 'ManagerPass123!' : '');
+  if (!adminPassword) {
+    throw new Error('ADMIN_PASSWORD environment variable is required in production.');
+  }
+
+  const seedDemoData = process.env.SEED_DEMO_DATA !== 'false';
+  const defaultUserPassword = seedDemoData
+    ? (process.env.DEMO_USER_PASSWORD || (!isProduction ? 'ParticipantPass123!' : ''))
+    : '';
+
+  if (seedDemoData && isProduction && !defaultUserPassword) {
+    throw new Error('DEMO_USER_PASSWORD environment variable is required when seeding demo data in production.');
+  }
 
   const managerHash = await bcrypt.hash(adminPassword, 10);
-  const userHash = await bcrypt.hash(defaultUserPassword, 10);
+  const userHash = defaultUserPassword ? await bcrypt.hash(defaultUserPassword, 10) : '';
 
   // 1. Demo Program Manager
   await prisma.user.upsert({
@@ -27,6 +40,11 @@ async function main() {
       isActive: true,
     },
   });
+
+  if (!seedDemoData) {
+    console.log('Seed completed successfully: 1 Manager created/updated (demo data skipped via SEED_DEMO_DATA=false).');
+    return;
+  }
 
   // 2. Demo Participant 1
   const participant1 = await prisma.user.upsert({
