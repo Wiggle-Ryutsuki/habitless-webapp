@@ -491,4 +491,30 @@ describe('Program Builder Component (UI-07)', () => {
       screen.getByText(/this challenge was previously published and is currently unpublished/i)
     ).toBeInTheDocument();
   });
+
+  it('renders per-activity Description and Target Count inputs for curriculum activities (DEF-HL-02)', async () => {
+    render(<ProgramBuilder />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
+    });
+
+    // Open Create Challenge modal
+    fireEvent.click(screen.getByRole('button', { name: /\+ create challenge/i }));
+
+    // Verify per-activity Description and Target Count inputs exist
+    expect(screen.getByLabelText(/Activity 1 Description/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Activity 1 Target Count/i)).toBeInTheDocument();
+
+    // Fill in activity description and target count
+    fireEvent.change(screen.getByLabelText(/Activity 1 Description/i), {
+      target: { value: '10 minutes seated meditation' },
+    });
+    fireEvent.change(screen.getByLabelText(/Activity 1 Target Count/i), {
+      target: { value: '30' },
+    });
+
+    expect(screen.getByLabelText(/Activity 1 Description/i)).toHaveValue('10 minutes seated meditation');
+    expect(screen.getByLabelText(/Activity 1 Target Count/i)).toHaveValue(30);
+  });
 });
