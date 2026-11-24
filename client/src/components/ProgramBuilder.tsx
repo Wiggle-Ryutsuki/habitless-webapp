@@ -1193,7 +1193,7 @@ export const ProgramBuilder: React.FC = () => {
                           type="text"
                           required
                           aria-label={`Activity ${index + 1} Title`}
-                          placeholder="Activity title (e.g. Daily Hydration 2L)"
+                          placeholder="Activity title"
                           value={act.title}
                           onChange={(e) => handleActivityChange(index, 'title', e.target.value)}
                           style={{
@@ -1262,7 +1262,7 @@ export const ProgramBuilder: React.FC = () => {
                         <input
                           type="text"
                           aria-label={`Activity ${index + 1} Description`}
-                          placeholder="Activity description (optional, e.g. 10 minutes seated meditation)"
+                          placeholder="Activity description (optional)"
                           value={act.description || ''}
                           onChange={(e) => handleActivityChange(index, 'description', e.target.value)}
                           style={{
