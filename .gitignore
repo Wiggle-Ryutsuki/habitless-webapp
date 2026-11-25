@@ -19,7 +19,8 @@ server/prisma/*.db
 
 # lab files
 *docs/sprint-01/_lab5_sec31_habitless.pdf
-*sprint-01/_lab5_sec31_habitless.pdf
+*docs/sprint-01/habitless_sprint1_draft.pdf
+*docs/sprint-02/habitless_sprint2_draft.pdf
 *Student-Guide-GCP-Deployment-and+CI+CD-V1_1.pdf
 *SE_Lab_5_updated.pdf
 *Lab_6_Sprint_1_UAT.pdf
