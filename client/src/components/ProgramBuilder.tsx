@@ -1193,7 +1193,7 @@ export const ProgramBuilder: React.FC = () => {
                           type="text"
                           required
                           aria-label={`Activity ${index + 1} Title`}
-                          placeholder="Activity title (e.g. Daily Hydration 2L)"
+                          placeholder="Activity title"
                           value={act.title}
                           onChange={(e) => handleActivityChange(index, 'title', e.target.value)}
                           style={{
@@ -1256,6 +1256,51 @@ export const ProgramBuilder: React.FC = () => {
                           {fieldErrors[`activities[${index}].title`]}
                         </div>
                       )}
+
+                      {/* Optional Activity Description (DEF-HL-02) */}
+                      <div style={{ marginTop: '6px' }}>
+                        <input
+                          type="text"
+                          aria-label={`Activity ${index + 1} Description`}
+                          placeholder="Activity description (optional)"
+                          value={act.description || ''}
+                          onChange={(e) => handleActivityChange(index, 'description', e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '6px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd',
+                            fontSize: '0.8125rem',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+
+                      {/* Activity Target Count (DEF-HL-02) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '8px' }}>
+                        <label
+                          htmlFor={`activity-${index}-target`}
+                          style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--walnut)' }}
+                        >
+                          Target Count:
+                        </label>
+                        <input
+                          id={`activity-${index}-target`}
+                          type="number"
+                          min="1"
+                          max="31"
+                          aria-label={`Activity ${index + 1} Target Count`}
+                          value={act.targetCount || 1}
+                          onChange={(e) => handleActivityChange(index, 'targetCount', parseInt(e.target.value, 10) || 1)}
+                          style={{
+                            width: '65px',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd',
+                            fontSize: '0.8125rem',
+                          }}
+                        />
+                      </div>
 
                       {/* Day of Week Selector */}
                       <div style={{ marginTop: '8px' }}>
