@@ -50,7 +50,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
 
   // Check role restrictions
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === 'PROGRAM_MANAGER' ? '/manager' : '/dashboard'} replace />;
+    return <Navigate to={user.role === 'PROGRAM_MANAGER' ? '/manager' : '/calendar'} replace />;
   }
 
   return <>{children}</>;
