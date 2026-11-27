@@ -60,11 +60,12 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
   * **Edit**: Closes Quick-View card and opens `EditHabitModal` pre-populated for that habit.
   * **Delete**: Opens confirmation prompt and calls `DELETE /api/habits/:id` (soft-archive `isActive: false`), then refreshes calendar.
 
-### `UI-S2-02`: Habit Category & Custom Color Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ColorPicker.tsx`)
+### `UI-S2-02`: Habit & Challenge Category & Custom Color Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ProgramBuilder.tsx`, `ColorPicker.tsx`)
 * **Category Dropdown (`FR-S2-02`)**:
-  * Options: `""` (`Uncategorized / None`), `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, `__CUSTOM__` (`Custom...`).
+  * Options on `NewHabitModal` / `EditHabitModal`: `""` (`Uncategorized / None`), `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, `__CUSTOM__` (`Custom...`).
+  * Options on `ProgramBuilder.tsx`: the 9 presets (`Health & Fitness` default) + `__CUSTOM__` (`Custom...`) (required `1–50` chars, no `"Uncategorized"`).
   * Selecting `Custom...` reveals a text input (`maxLength={50}`) for a custom category label.
-  * Pre-existing custom categories not in the 9 presets automatically select `Custom...` and populate the custom input when editing.
+  * Pre-existing custom/legacy categories not in the 9 presets automatically select `Custom...` and populate the custom input when editing.
 * **Color Picker (`FR-S2-01`)**:
   * Renders **9 circular color choices** inside the `role="radiogroup"`: the 8 Sprint 1 quick-select swatches plus a 9th **"Custom Color"** circle (`aria-label="Custom color"`).
   * When a custom (non-preset) hex is selected, the 9th circle fills with that custom hex and displays the active Walnut focus ring + `✓`; otherwise it shows a subtle multi-color wheel/conic-gradient ring (`+` or palette indicator).
@@ -111,7 +112,7 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
 ### `UI-S2-06`: Program Manager Dashboard (`/manager/dashboard`, `ManagerDashboardPage.tsx`)
 * **Summary KPI Strip**: Total Published Challenges, Total Active Enrollments, Total Completed Enrollments (`FR-S2-15`).
 * **Most Popular Challenges Panel**: Ranked table/cards of platform-wide challenges by enrollment count (`title`, `category`, `managerName`, `enrollmentCount`, `averageRating`).
-* **Top Categories Panel**: Ranked breakdown by `category` showing challenge count, total enrollments, and completion rate progress bar.
+* **Top Categories Panel**: Ranked breakdown by `category` showing challenge count, total enrollments, and completion rate progress bar. Non-preset custom categories are grouped and displayed as `"Other"` at the top level, with an expand/inspect control revealing the underlying custom category names (`customCategories[]`).
 * Clicking any challenge card navigates to `/manager/challenges/:id` (`UI-S2-08`).
 
 ### `UI-S2-07`: Global Challenges Directory (`/manager/challenges`, `ManagerDirectoryPage.tsx`)

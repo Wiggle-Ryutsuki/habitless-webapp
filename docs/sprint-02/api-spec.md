@@ -341,14 +341,37 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
     ],
     "topCategories": [
       {
-        "category": "Wellness",
+        "category": "Health & Fitness",
+        "isPreset": true,
         "challengesCount": 3,
         "totalEnrollments": 28,
         "completionRate": 74
+      },
+      {
+        "category": "Other",
+        "isPreset": false,
+        "challengesCount": 2,
+        "totalEnrollments": 14,
+        "completionRate": 68,
+        "customCategories": [
+          {
+            "category": "Wellness",
+            "challengesCount": 1,
+            "totalEnrollments": 10,
+            "completionRate": 70
+          },
+          {
+            "category": "Digital Detox",
+            "challengesCount": 1,
+            "totalEnrollments": 4,
+            "completionRate": 63
+          }
+        ]
       }
     ]
   }
   ```
+  *(Any non-preset `ChallengeProgram.category` is rolled up under `"Other"` in `topCategories[]` with its individual custom category names available in `customCategories[]` for drill-down inspection.)*
 
 #### `API-S2-11`: `GET /api/manager/directory`
 * **Purpose**: Global Challenges Directory across all Program Managers (`FR-S2-16`, `BR-S2-10`).
