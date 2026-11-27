@@ -3,20 +3,21 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { DashboardPage } from '../../src/pages/DashboardPage.js';
 import * as AuthContextModule from '../../src/context/AuthContext.js';
+import * as HabitsService from '../../src/services/habits.service.js';
 
-describe('Dashboard Under-Construction Component (UI-08)', () => {
-  const mockUser = {
-    id: 10,
-    email: 'alex@example.com',
-    fullName: 'Alex Rivera',
-    role: 'PARTICIPANT' as const,
+describe('Program Manager Dashboard Fallback Component (UI-08)', () => {
+  const mockManager = {
+    id: 20,
+    email: 'manager@example.com',
+    fullName: 'Dr. Jordan Wells',
+    role: 'PROGRAM_MANAGER' as const,
     isActive: true,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
-      user: mockUser,
+      user: mockManager,
       isLoading: false,
       error: null,
       login: vi.fn(),
@@ -26,43 +27,38 @@ describe('Dashboard Under-Construction Component (UI-08)', () => {
     });
   });
 
-  it('renders under-construction announcement and triggers toast notification', () => {
+  it('renders Manager fallback card linking to /manager without calling Participant dashboard API', () => {
+    const dashboardSpy = vi.spyOn(HabitsService, 'fetchParticipantDashboard');
+
     render(
       <BrowserRouter>
         <DashboardPage />
       </BrowserRouter>
     );
 
-    // Toast notification
-    const toast = screen.getByRole('status');
-    expect(toast).toHaveTextContent(/dashboard is still under construction/i);
-    expect(toast).toHaveAttribute('aria-live', 'polite');
-
-    // Under-construction card
+    expect(dashboardSpy).not.toHaveBeenCalled();
     expect(screen.getByRole('heading', { name: /dashboard under construction/i })).toBeInTheDocument();
     expect(
-      screen.getByText(/the participant dashboard is currently under construction\. please use the habit calendar to track your daily habits\./i)
+      screen.getByText(
+        /the program manager dashboard is currently under construction\. please use the programs tab to manage and deploy your challenges\./i
+      )
     ).toBeInTheDocument();
 
-    // Link to Habit Calendar
-    const calendarLink = screen.getByRole('link', { name: /go to habit calendar/i });
-    expect(calendarLink).toHaveAttribute('href', '/calendar');
+    const programsLink = screen.getByRole('link', { name: /go to programs/i });
+    expect(programsLink).toHaveAttribute('href', '/manager');
   });
 
-  it('allows dismissing the toast notification', () => {
+  it('keeps Manager Header Dashboard link placeholder toast intact until Feature 9', () => {
     render(
       <BrowserRouter>
         <DashboardPage />
       </BrowserRouter>
     );
 
+    const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+    fireEvent.click(dashboardLinks[0]);
+
     const toast = screen.getByRole('status');
-    expect(toast).toBeInTheDocument();
-
-    const dismissBtn = screen.getByRole('button', { name: /dismiss notification/i });
-    fireEvent.click(dismissBtn);
-
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(toast).toHaveTextContent(/dashboard is still under construction/i);
   });
 });
-

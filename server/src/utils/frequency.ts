@@ -61,7 +61,11 @@ export function isHabitScheduledForDate(
       return isoDay >= 1 && isoDay <= 5;
 
     case 'THREE_TIMES_WEEKLY':
+      return (days.length > 0 ? days : [1, 3, 5]).includes(isoDay);
+
     case 'WEEKLY':
+      return (days.length > 0 ? days : [1]).includes(isoDay);
+
     case 'CUSTOM_DAYS':
       return days.includes(isoDay);
 

@@ -8,6 +8,7 @@ import {
   DailyNote,
   CreateNotePayload,
   UpdateNotePayload,
+  ParticipantDashboardResponse,
 } from '../types/habit.js';
 
 const API_BASE = '/api';
@@ -37,6 +38,18 @@ async function handleResponse<T>(res: Response): Promise<T> {
     throw new HabitApiError(message, code, errBody.error?.fieldErrors);
   }
   return res.json() as Promise<T>;
+}
+
+export async function fetchParticipantDashboard(date?: string): Promise<ParticipantDashboardResponse> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : '';
+  const res = await fetch(`${API_BASE}/tracking/dashboard${query}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  return handleResponse<ParticipantDashboardResponse>(res);
 }
 
 export async function fetchTodayChecklist(date?: string): Promise<TodayChecklistResponse> {

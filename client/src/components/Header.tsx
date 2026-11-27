@@ -68,7 +68,6 @@ export const Header: React.FC = () => {
                 </Link>
                 <Link
                   to="/dashboard"
-                  onClick={triggerUnderConstruction}
                   style={{
                     color: location.pathname === '/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
                     padding: '0.5rem 0.75rem',
@@ -78,6 +77,30 @@ export const Header: React.FC = () => {
                   }}
                 >
                   Dashboard
+                </Link>
+                <Link
+                  to="/habits"
+                  style={{
+                    color: location.pathname === '/habits' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: location.pathname === '/habits' ? 600 : 500,
+                  }}
+                >
+                  Habits
+                </Link>
+                <Link
+                  to="/challenges"
+                  style={{
+                    color: location.pathname === '/challenges' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: location.pathname === '/challenges' ? 600 : 500,
+                  }}
+                >
+                  Challenges
                 </Link>
               </>
             ) : (
@@ -228,19 +251,46 @@ export const Header: React.FC = () => {
                   <Link
                     to="/calendar"
                     onClick={() => setMobileMenuOpen(false)}
-                    style={{ padding: '8px 0', fontWeight: 600, color: 'var(--walnut)' }}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/calendar' ? 600 : 500,
+                      color: location.pathname === '/calendar' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    }}
                   >
                     Habit Calendar
                   </Link>
                   <Link
                     to="/dashboard"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      triggerUnderConstruction();
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/dashboard' ? 600 : 500,
+                      color: location.pathname === '/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
                     }}
-                    style={{ padding: '8px 0', color: 'var(--color-text-muted)' }}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    to="/habits"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/habits' ? 600 : 500,
+                      color: location.pathname === '/habits' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    Habits
+                  </Link>
+                  <Link
+                    to="/challenges"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/challenges' ? 600 : 500,
+                      color: location.pathname === '/challenges' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    Challenges
                   </Link>
                 </>
               ) : (
