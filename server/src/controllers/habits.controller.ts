@@ -14,6 +14,23 @@ const VALID_FREQUENCIES: FrequencyType[] = [
   'CUSTOM_DAYS',
 ];
 
+function normalizeHabitCategory(category: unknown): string | null {
+  if (category === undefined || category === null) {
+    return null;
+  }
+  if (typeof category !== 'string') {
+    throw new AppError(422, 'INVALID_HABIT_CATEGORY', 'Category must be a string.');
+  }
+  const trimmed = category.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+  if (trimmed.length > 50) {
+    throw new AppError(422, 'INVALID_HABIT_CATEGORY', 'Category cannot exceed 50 characters.');
+  }
+  return trimmed;
+}
+
 export async function getHabits(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.id;
@@ -42,6 +59,7 @@ export async function createHabit(req: Request, res: Response, next: NextFunctio
     const {
       title,
       description,
+      category,
       colorHex,
       frequency,
       daysOfWeek,
@@ -59,6 +77,9 @@ export async function createHabit(req: Request, res: Response, next: NextFunctio
     if (description !== undefined && description !== null && typeof description === 'string' && description.trim().length > 500) {
       throw new AppError(422, 'INVALID_HABIT_DESCRIPTION', 'Description cannot exceed 500 characters.');
     }
+
+    // 2b. Category Validation & Normalization
+    const normalizedCategory = normalizeHabitCategory(category);
 
     // 3. Color Validation (8 fixed habit colors)
     if (!colorHex || !isValidHabitColor(colorHex)) {
@@ -132,6 +153,7 @@ export async function createHabit(req: Request, res: Response, next: NextFunctio
         userId,
         title: title.trim(),
         description: description ? description.trim() : null,
+        category: normalizedCategory,
         colorHex: normalizedColor,
         frequency: frequency as FrequencyType,
         daysOfWeek: finalDaysOfWeek,
@@ -195,6 +217,7 @@ export async function updateHabit(req: Request, res: Response, next: NextFunctio
     const {
       title,
       description,
+      category,
       colorHex,
       frequency,
       daysOfWeek,
@@ -217,6 +240,10 @@ export async function updateHabit(req: Request, res: Response, next: NextFunctio
         throw new AppError(422, 'INVALID_HABIT_DESCRIPTION', 'Description cannot exceed 500 characters.');
       }
       dataToUpdate.description = description ? description.trim() : null;
+    }
+
+    if (category !== undefined) {
+      dataToUpdate.category = normalizeHabitCategory(category);
     }
 
     if (colorHex !== undefined) {

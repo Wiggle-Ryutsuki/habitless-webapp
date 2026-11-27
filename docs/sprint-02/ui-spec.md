@@ -22,9 +22,8 @@ All Sprint 2 UI views preserve the Sprint 1 Warm Natural Shell tokens defined in
   * `--papaya-whip: #feeac7` (Card borders, table headers, subtle surface tint)
   * `--golden-sand: #cad182` (Success/active badges, completion accents)
   * Semantic tokens (`--color-surface: #ffffff`, `--color-text-main: #2d1c0b`, `--color-text-muted: #6b5e51`, `--color-error: #b3261e`, `--color-error-bg: #fdf2f2`).
-* **Habit Color Presets & Custom Picker (9 Color Choices)**:
-  * Sprint 1's 8 swatches (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`) remain rendered as the first 8 circular swatches in `ColorPicker.tsx`.
-  * A **9th circular swatch button** (`"Custom Color"`) sits beside the 8 swatches; clicking it opens an inline popover/panel with a **color wheel** (`<input type="color">` / spectrum picker) and a **`#RRGGBB` hex code text input** (`FR-S2-01`).
+* **Habit Color Palette (`FR-05`, `BR-02` — Unchanged from Sprint 1)**:
+  * Sprint 1's fixed 8 swatches (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`) remain unchanged in `ColorPicker.tsx`. Customizable habit colors (9th circle, color wheel, and custom hex input) are deferred out of Sprint 2.
 
 ---
 
@@ -60,17 +59,14 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
   * **Edit**: Closes Quick-View card and opens `EditHabitModal` pre-populated for that habit.
   * **Delete**: Opens confirmation prompt and calls `DELETE /api/habits/:id` (soft-archive `isActive: false`), then refreshes calendar.
 
-### `UI-S2-02`: Habit Category & Custom Color Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ColorPicker.tsx`)
+### `UI-S2-02`: Habit & Challenge Category Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ProgramBuilder.tsx`)
 * **Category Dropdown (`FR-S2-02`)**:
-  * Options: `""` (`Uncategorized / None`), `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, `__CUSTOM__` (`Custom...`).
+  * Options on `NewHabitModal` / `EditHabitModal`: `""` (`Uncategorized / None`), `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, `__CUSTOM__` (`Custom...`).
+  * Options on `ProgramBuilder.tsx`: the 9 presets (`Health & Fitness` default) + `__CUSTOM__` (`Custom...`) (required `1–50` chars, no `"Uncategorized"`).
   * Selecting `Custom...` reveals a text input (`maxLength={50}`) for a custom category label.
-  * Pre-existing custom categories not in the 9 presets automatically select `Custom...` and populate the custom input when editing.
-* **Color Picker (`FR-S2-01`)**:
-  * Renders **9 circular color choices** inside the `role="radiogroup"`: the 8 Sprint 1 quick-select swatches plus a 9th **"Custom Color"** circle (`aria-label="Custom color"`).
-  * When a custom (non-preset) hex is selected, the 9th circle fills with that custom hex and displays the active Walnut focus ring + `✓`; otherwise it shows a subtle multi-color wheel/conic-gradient ring (`+` or palette indicator).
-  * Clicking the 9th circle toggles a **Custom Color Popover/Panel** containing:
-    1. A **color wheel / native picker** (`<input type="color">` or interactive wheel) synced to the active hex.
-    2. A **hex code text input** (`#RRGGBB`, validated against `^#[0-9A-Fa-f]{6}$`) with validation feedback via `aria-live="polite"`.
+  * Pre-existing custom/legacy categories not in the 9 presets automatically select `Custom...` and populate the custom input when editing.
+* **Color Picker (`FR-05`, `BR-02` — Unchanged from Sprint 1)**:
+  * `ColorPicker.tsx` continues rendering Sprint 1's 8 fixed circular swatches inside `role="radiogroup"`.
 
 ### `UI-S2-03`: Participant Dashboard (`/dashboard`, `DashboardPage.tsx`)
 * **Section 1 — Today's Focus Snippet (`FR-S2-04`)**:
@@ -90,8 +86,8 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
   * **Streak Counters**: Two metric cards — **Current Streak** (`X days`) and **Highest Streak** (`Y days`).
   * **Completion Heatmap**:
     * Toggle control: `[ Month ]` | `[ Year ]` + month/year navigation arrows.
-    * **Month Mode**: Calendar grid for the selected month where unlogged days render at `0%` fill opacity (subtle border) and completed days render at `100%` opacity in `habit.colorHex` with `aria-label` describing date and status.
-    * **Year Mode**: 12-month or 52-week grid shaded in `habit.colorHex` using 5 opacity levels (`0`, `0.25`, `0.5`, `0.75`, `1.0`) with an opacity legend (`0%` to `100%`).
+    * **Month Mode**: Calendar grid for the selected month where unlogged days render at `0%` fill opacity (subtle border) and completed days render at `100%` opacity in the habit's assigned Sprint 1 palette `colorHex` with `aria-label` describing date and status.
+    * **Year Mode**: 12-month or 52-week grid shaded in the habit's assigned Sprint 1 palette `colorHex` using 5 opacity levels (`0`, `0.25`, `0.5`, `0.75`, `1.0`) with an opacity legend (`0%` to `100%`).
 
 ### `UI-S2-05`: Interactive Challenges Hub (`/challenges`, `ChallengesHubPage.tsx`) & Challenge Badges
 * **Discovery Bar (`FR-S2-10`)**: Search input (title/description), Category dropdown, and Enrollment Status filter (`All`, `Available`, `Enrolled`, `Ended`).
@@ -111,7 +107,7 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
 ### `UI-S2-06`: Program Manager Dashboard (`/manager/dashboard`, `ManagerDashboardPage.tsx`)
 * **Summary KPI Strip**: Total Published Challenges, Total Active Enrollments, Total Completed Enrollments (`FR-S2-15`).
 * **Most Popular Challenges Panel**: Ranked table/cards of platform-wide challenges by enrollment count (`title`, `category`, `managerName`, `enrollmentCount`, `averageRating`).
-* **Top Categories Panel**: Ranked breakdown by `category` showing challenge count, total enrollments, and completion rate progress bar.
+* **Top Categories Panel**: Ranked breakdown by `category` showing challenge count, total enrollments, and completion rate progress bar. Non-preset custom categories are grouped and displayed as `"Other"` at the top level, with an expand/inspect control revealing the underlying custom category names (`customCategories[]`).
 * Clicking any challenge card navigates to `/manager/challenges/:id` (`UI-S2-08`).
 
 ### `UI-S2-07`: Global Challenges Directory (`/manager/challenges`, `ManagerDirectoryPage.tsx`)
@@ -123,3 +119,8 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
 * **Strictly Read-Only Program Metadata (`FR-S2-16`)**: Displays title, category, organizer, duration, description, target activities/frequencies, ratings summary, and a **Back** navigation button.
 * **No Management Buttons**: Edit, Publish, Unpublish, Archive, and Delete actions are intentionally omitted here and remain centralized in `ProgramBuilder.tsx` on `/manager`.
 * **Comment Threads & Replies**: Displays participant comments and allows the Program Manager to post 1-level replies directly under any top-level comment.
+
+### `UI-S2-09`: In-Place Challenge Layout Preview (`ProgramBuilder.tsx` & `ChallengeInvitationCard.tsx`, `FR-S2-17`)
+* **Create/Edit Modal `Edit | Preview` Tabs**: Adds a segmented **Edit** / **Preview** tab bar (`role="tablist"`) inside `ProgramBuilder.tsx`'s Challenge modal so Program Managers can toggle live between editing form fields and viewing the participant invitation card layout (`ChallengeInvitationCard` with `previewMode={true}`) before saving or publishing, while preserving all unsaved inputs when switching tabs.
+* **Per-Row `Preview` Action (`DRAFT`, `PUBLISHED`, `ARCHIVED`)**: Adds a **Preview** button to every row in the Challenge Programs management table on `/manager`, opening a view-only preview modal (`role="dialog"`, `aria-modal="true"`) rendering `ChallengeInvitationCard` (`previewMode={true}`) alongside its status badge (`DRAFT`, `PUBLISHED`, or `ARCHIVED`) without navigating away from `/manager`.
+* **Preview Mode Behavior**: Displays organizer name, category badge, title, duration, guidelines, and activity schedules/targets using the Warm Natural Shell tokens; replaces/disables the enrollment button (`"Preview Mode — Join Disabled"`) so no enrollment mutation occurs, and provides a **Close** button to exit preview.

@@ -31,11 +31,11 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
 
 ## 2. Updated Sprint 1 Endpoints (Sprint 2 Extensions)
 
-### 2.1. Habit Management (`/api/habits`) — `FR-S2-01`, `FR-S2-02`, `FR-S2-03`
+### 2.1. Habit Management (`/api/habits`) — `FR-S2-02`, `FR-S2-03` (Preserves Sprint 1 `FR-05` / `BR-02`)
 
 #### `POST /api/habits` & `PUT /api/habits/:id`
 * **Updated Fields**:
-  * `colorHex` (`BR-S2-01`): Required on `POST`, optional on `PUT`. Accepts any valid 6-digit hex `^#[0-9A-Fa-f]{6}$` (or `#RRGGBBff`), normalized to lowercase `#rrggbb`. Invalid strings return HTTP `422` (`INVALID_HABIT_COLOR`).
+  * `colorHex` (Sprint 1 `BR-02` preserved): Required on `POST`, optional on `PUT`. Enforces Sprint 1's fixed 8-color palette allowlist in `server/src/utils/palette-validator.ts` (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`; or `#RRGGBBff` normalized to lowercase `#rrggbb`). Non-palette or malformed hexes return HTTP `422` (`INVALID_HABIT_COLOR`).
   * `category` (`BR-S2-02`): Optional nullable string, trimmed, max `50` chars (9 presets: `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, or custom string). Empty string normalizes to `null`. Strings > 50 chars return HTTP `422` (`INVALID_HABIT_CATEGORY`).
   * `frequency` (`BR-S2-04`): Supported Sprint 2 frequencies are Daily (`DAILY`), Certain Days (`WEEKDAYS`, `THREE_TIMES_WEEKLY`, `CUSTOM_DAYS`), and Weekly (`WEEKLY`).
 * **Updated Habit DTO** (returned by `GET /api/habits`, `POST /api/habits`, `GET /api/habits/:id`, `PUT /api/habits/:id`):
@@ -46,7 +46,7 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
     "title": "Journal",
     "description": "Daily reflection before bed",
     "category": "Mindfulness",
-    "colorHex": "#9c27b0",
+    "colorHex": "#ff9800",
     "frequency": "DAILY",
     "daysOfWeek": [1, 2, 3, 4, 5, 6, 7],
     "startDate": "2026-11-01T00:00:00.000Z",
@@ -217,7 +217,7 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
     }
   }
   ```
-* **Year Heatmap Semantics (`mode=year`)**: Returns 12 calendar-month buckets or 53 ISO-week buckets (explicitly keyed as `YYYY-MM` or `YYYY-Www`) with `completedCount`, `scheduledCount`, and quantized `opacity` in `{ 0, 0.25, 0.5, 0.75, 1.0 }` (`BR-S2-05`).
+* **Year Heatmap Semantics (`mode=year`)**: Returns 12 calendar-month buckets or 53 ISO-week buckets (explicitly keyed as `YYYY-MM` or `YYYY-Www`) with `completedCount`, `scheduledCount`, and quantized `opacity` in `{ 0, 0.25, 0.5, 0.75, 1.0 }` applied to the habit's assigned Sprint 1 palette `colorHex` (`FR-S2-08`, `BR-S2-05`).
 
 ---
 
@@ -341,14 +341,37 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
     ],
     "topCategories": [
       {
-        "category": "Wellness",
+        "category": "Health & Fitness",
+        "isPreset": true,
         "challengesCount": 3,
         "totalEnrollments": 28,
         "completionRate": 74
+      },
+      {
+        "category": "Other",
+        "isPreset": false,
+        "challengesCount": 2,
+        "totalEnrollments": 14,
+        "completionRate": 68,
+        "customCategories": [
+          {
+            "category": "Wellness",
+            "challengesCount": 1,
+            "totalEnrollments": 10,
+            "completionRate": 70
+          },
+          {
+            "category": "Digital Detox",
+            "challengesCount": 1,
+            "totalEnrollments": 4,
+            "completionRate": 63
+          }
+        ]
       }
     ]
   }
   ```
+  *(Any non-preset `ChallengeProgram.category` is rolled up under `"Other"` in `topCategories[]` with its individual custom category names available in `customCategories[]` for drill-down inspection.)*
 
 #### `API-S2-11`: `GET /api/manager/directory`
 * **Purpose**: Global Challenges Directory across all Program Managers (`FR-S2-16`, `BR-S2-10`).

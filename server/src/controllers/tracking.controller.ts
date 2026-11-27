@@ -72,10 +72,12 @@ export async function getTodayChecklist(req: Request, res: Response, next: NextF
         habitId: h.id,
         title: h.title,
         description: h.description,
+        category: h.category,
         colorHex: h.colorHex,
         frequency: h.frequency,
         isCompleted,
         logId: log ? log.id : null,
+        programId: h.programId,
       };
     });
 
@@ -256,6 +258,7 @@ export async function getCalendarMatrix(req: Request, res: Response, next: NextF
         habitId: h.id,
         title: h.title,
         description: h.description,
+        category: h.category,
         colorHex: h.colorHex,
         frequency: h.frequency,
         daysOfWeek: h.daysOfWeek,
@@ -263,6 +266,7 @@ export async function getCalendarMatrix(req: Request, res: Response, next: NextF
         endDate: h.endDate ? h.endDate.toISOString() : null,
         targetCount: h.targetCount,
         goalAchievedCount: achieved,
+        programId: h.programId,
         days,
       };
     });

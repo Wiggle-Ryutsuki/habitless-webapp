@@ -10,6 +10,13 @@ import {
   getInitialDaysOfWeek,
 } from './DayOfWeekSelector.js';
 import {
+  CategorySelector,
+  HABIT_CATEGORY_PRESETS,
+  getInitialCategoryState,
+  resolveCategoryValue,
+  validateCategorySelection,
+} from './CategorySelector.js';
+import {
   fetchManagerPrograms,
   createProgram,
   updateProgram,
@@ -39,15 +46,6 @@ interface ConfirmDialogState {
   onCancel?: () => void;
 }
 
-const CATEGORIES = [
-  'Wellness',
-  'Fitness',
-  'Mindfulness',
-  'Nutrition',
-  'Productivity',
-  'Other',
-];
-
 export const ProgramBuilder: React.FC = () => {
   const [programs, setPrograms] = useState<ChallengeProgram[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -68,7 +66,8 @@ export const ProgramBuilder: React.FC = () => {
 
   // Form State
   const [title, setTitle] = useState<string>('');
-  const [category, setCategory] = useState<string>('Wellness');
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState<string>(HABIT_CATEGORY_PRESETS[0]);
+  const [customCategory, setCustomCategory] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -110,7 +109,8 @@ export const ProgramBuilder: React.FC = () => {
     setEditingProgramId(null);
     setIsPreviouslyPublished(false);
     setTitle('');
-    setCategory('Wellness');
+    setSelectedCategoryOption(HABIT_CATEGORY_PRESETS[0]);
+    setCustomCategory('');
     setDescription('');
     setStartDate('');
     setEndDate('');
@@ -131,8 +131,10 @@ export const ProgramBuilder: React.FC = () => {
   const handleEditDraft = (prog: ChallengeProgram) => {
     setEditingProgramId(prog.id);
     setIsPreviouslyPublished(Boolean(prog.previouslyPublished));
+    const initialCategory = getInitialCategoryState(prog.category, false);
     setTitle(prog.title);
-    setCategory(prog.category);
+    setSelectedCategoryOption(initialCategory.selectedOption);
+    setCustomCategory(initialCategory.customValue);
     setDescription(prog.description || '');
     setStartDate(prog.startDate.split('T')[0]);
     setEndDate(prog.endDate.split('T')[0]);
@@ -219,8 +221,13 @@ export const ProgramBuilder: React.FC = () => {
       errors.title = 'Title must be between 3 and 100 characters.';
     }
 
-    if (!category.trim()) {
-      errors.category = 'Category is required.';
+    const categoryError = validateCategorySelection(
+      selectedCategoryOption,
+      customCategory,
+      true
+    );
+    if (categoryError) {
+      errors.category = categoryError;
     }
 
     if (description.trim().length > 500) {
@@ -278,7 +285,7 @@ export const ProgramBuilder: React.FC = () => {
 
   const buildPayload = (): CreateProgramPayload => ({
     title: title.trim(),
-    category: category.trim(),
+    category: resolveCategoryValue(selectedCategoryOption, customCategory) || HABIT_CATEGORY_PRESETS[0],
     description: description.trim() ? description.trim() : null,
     startDate: new Date(startDate).toISOString(),
     endDate: new Date(endDate).toISOString(),
@@ -1024,31 +1031,17 @@ export const ProgramBuilder: React.FC = () => {
 
               {/* Category Dropdown */}
               <div style={{ marginBottom: '1rem' }}>
-                <label htmlFor="program-category" style={{ display: 'block', fontWeight: 600, color: 'var(--walnut)', fontSize: '0.875rem', marginBottom: '4px' }}>
-                  Category <span style={{ color: 'var(--color-error)' }}>*</span>
-                </label>
-                <select
+                <CategorySelector
                   id="program-category"
                   name="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${fieldErrors.category ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
-                    fontSize: '0.9375rem',
-                    color: 'var(--color-text-main)',
-                    backgroundColor: '#fff',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  selectedOption={selectedCategoryOption}
+                  customValue={customCategory}
+                  onSelectChange={setSelectedCategoryOption}
+                  onCustomChange={setCustomCategory}
+                  allowUncategorized={false}
+                  required={true}
+                  error={fieldErrors.category}
+                />
               </div>
 
               {/* Description */}

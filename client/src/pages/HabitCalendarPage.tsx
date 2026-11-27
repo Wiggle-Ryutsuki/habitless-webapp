@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header.js';
 import { CalendarMatrix } from '../components/CalendarMatrix.js';
 import { EditHabitModal, HabitToEdit } from '../components/EditHabitModal.js';
+import { HabitQuickViewModal } from '../components/HabitQuickViewModal.js';
 import { NewHabitModal } from '../components/NewHabitModal.js';
 import { CalendarNotes } from '../components/CalendarNotes.js';
 import { CalendarHabit, DailyNote, Habit } from '../types/habit.js';
@@ -10,6 +11,8 @@ import { fetchNotes, fetchHabits } from '../services/habits.service.js';
 export const HabitCalendarPage: React.FC = () => {
   const [selectedHabitForEdit, setSelectedHabitForEdit] = useState<HabitToEdit | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [quickViewHabit, setQuickViewHabit] = useState<CalendarHabit | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -39,6 +42,7 @@ export const HabitCalendarPage: React.FC = () => {
       id: h.habitId,
       title: h.title,
       description: h.description !== undefined ? h.description : (matched?.description ?? null),
+      category: h.category !== undefined ? h.category : (matched?.category ?? null),
       colorHex: h.colorHex,
       frequency: h.frequency || matched?.frequency || 'DAILY',
       daysOfWeek: h.daysOfWeek || matched?.daysOfWeek,
@@ -49,13 +53,27 @@ export const HabitCalendarPage: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleQuickViewHabit = (h: CalendarHabit) => {
+    setQuickViewHabit(h);
+    setIsQuickViewOpen(true);
+  };
+
+  const handleQuickViewEdit = () => {
+    if (!quickViewHabit) return;
+    const target = quickViewHabit;
+    setIsQuickViewOpen(false);
+    handleEditHabit(target);
+  };
+
   const handleHabitUpdated = (updated: Habit) => {
     setHabitsList((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
     setSelectedHabitForEdit(null);
     setRefreshKey((k) => k + 1);
   };
 
-  const handleHabitArchived = (_habitId: number) => {
+  const handleHabitArchived = (habitId: number) => {
+    setHabitsList((prev) => prev.filter((item) => item.id !== habitId));
+    setQuickViewHabit((prev) => (prev?.habitId === habitId ? null : prev));
     setRefreshKey((k) => k + 1);
   };
 
@@ -82,6 +100,7 @@ export const HabitCalendarPage: React.FC = () => {
       <main style={{ maxWidth: '1400px', margin: '1.5rem auto', padding: '0 1rem' }}>
         <CalendarMatrix
           onEditHabit={handleEditHabit}
+          onQuickViewHabit={handleQuickViewHabit}
           onNewHabitClick={() => setIsNewModalOpen(true)}
           refreshKey={refreshKey}
         />
@@ -92,6 +111,14 @@ export const HabitCalendarPage: React.FC = () => {
           onNoteCreated={handleNoteCreated}
           onNoteUpdated={handleNoteUpdated}
           onNoteDeleted={handleNoteDeleted}
+        />
+
+        <HabitQuickViewModal
+          isOpen={isQuickViewOpen}
+          habit={quickViewHabit}
+          onClose={() => setIsQuickViewOpen(false)}
+          onEdit={handleQuickViewEdit}
+          onHabitDeleted={handleHabitArchived}
         />
 
         <EditHabitModal

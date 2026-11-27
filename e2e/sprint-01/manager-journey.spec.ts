@@ -28,7 +28,7 @@ test.describe('Feature 4: Program Manager Challenge Lifecycle & Participant Join
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
 
     await page.getByLabel(/program title/i).fill('30-Day Total Wellness');
-    await page.getByLabel(/category/i).selectOption('Wellness');
+    await page.getByLabel(/^category/i).selectOption('Health & Fitness');
     await page.getByLabel(/start date/i).fill(`${currentYear}-${currentMonth}-01`);
     await page.getByLabel(/end date/i).fill(`${currentYear}-${currentMonth}-28`);
 
