@@ -154,7 +154,7 @@ describe('Program Builder Component (UI-07)', () => {
       expect(createSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Hydration 101',
-          category: 'Wellness',
+          category: 'Health & Fitness',
           activities: [
             expect.objectContaining({
               title: 'Drink 2L',

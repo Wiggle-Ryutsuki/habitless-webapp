@@ -3,11 +3,18 @@ import { FrequencyType, Habit } from '../types/habit.js';
 import { updateHabit, archiveHabit, HabitApiError } from '../services/habits.service.js';
 import { ColorPicker, HABIT_COLOR_PALETTE } from './ColorPicker.js';
 import { DayOfWeekSelector, deriveFrequencyType, getInitialDaysOfWeek } from './DayOfWeekSelector.js';
+import {
+  CategorySelector,
+  getInitialCategoryState,
+  resolveCategoryValue,
+  validateCategorySelection,
+} from './CategorySelector.js';
 
 export interface HabitToEdit {
   id: number;
   title: string;
   description?: string | null;
+  category?: string | null;
   colorHex: string;
   frequency?: FrequencyType;
   daysOfWeek?: number[];
@@ -53,6 +60,8 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
   const [colorHex, setColorHex] = useState(HABIT_COLOR_PALETTE[0].hex);
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [startDate, setStartDate] = useState('');
@@ -69,8 +78,11 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
 
   useEffect(() => {
     if (habit) {
+      const initialCategory = getInitialCategoryState(habit.category, true);
       setTitle(habit.title || '');
       setDescription(habit.description || '');
+      setSelectedCategoryOption(initialCategory.selectedOption);
+      setCustomCategory(initialCategory.customValue);
       setColorHex(habit.colorHex || HABIT_COLOR_PALETTE[0].hex);
       setSelectedDays(getInitialDaysOfWeek(habit.frequency, habit.daysOfWeek));
       setStartDate(formatDateForInput(habit.startDate) || new Date().toISOString().split('T')[0]);
@@ -125,6 +137,15 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
       errors.description = 'Description cannot exceed 500 characters.';
     }
 
+    const categoryError = validateCategorySelection(
+      selectedCategoryOption,
+      customCategory,
+      false
+    );
+    if (categoryError) {
+      errors.category = categoryError;
+    }
+
     if (endDate && startDate) {
       if (new Date(endDate) < new Date(startDate)) {
         errors.endDate = 'End date must be greater than or equal to start date.';
@@ -151,6 +172,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
       const updated = await updateHabit(habit.id, {
         title: title.trim(),
         description: description.trim() ? description.trim() : null,
+        category: resolveCategoryValue(selectedCategoryOption, customCategory),
         colorHex,
         frequency: derivedFrequency,
         daysOfWeek: selectedDays,
@@ -351,6 +373,17 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Category */}
+          <CategorySelector
+            id="edit-habit-category"
+            selectedOption={selectedCategoryOption}
+            customValue={customCategory}
+            onSelectChange={setSelectedCategoryOption}
+            onCustomChange={setCustomCategory}
+            allowUncategorized={true}
+            error={fieldErrors.category}
+          />
 
           {/* Color Picker Swatches */}
           <div>

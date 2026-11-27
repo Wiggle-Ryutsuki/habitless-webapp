@@ -7,6 +7,7 @@ export interface CalendarMatrixProps {
   initialMonth?: number;
   initialYear?: number;
   onEditHabit: (habit: CalendarHabit) => void;
+  onQuickViewHabit?: (habit: CalendarHabit) => void;
   onNewHabitClick?: () => void;
   refreshKey?: number;
 }
@@ -15,6 +16,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
   initialMonth,
   initialYear,
   onEditHabit,
+  onQuickViewHabit,
   onNewHabitClick,
   refreshKey,
 }) => {
@@ -601,7 +603,24 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <button
+                          type="button"
+                          onClick={() => onQuickViewHabit?.(h)}
+                          aria-label={`View ${h.title} details`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            overflow: 'hidden',
+                            background: 'transparent',
+                            border: 'none',
+                            padding: '4px 0',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
                           <span
                             style={{
                               display: 'inline-block',
@@ -626,11 +645,14 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                           >
                             {h.title}
                           </span>
-                        </div>
+                        </button>
 
                         <button
                           type="button"
-                          onClick={() => onEditHabit(h)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditHabit(h);
+                          }}
                           aria-label={`Edit ${h.title}`}
                           style={{
                             background: 'transparent',

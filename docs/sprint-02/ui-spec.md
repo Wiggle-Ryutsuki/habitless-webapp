@@ -22,9 +22,8 @@ All Sprint 2 UI views preserve the Sprint 1 Warm Natural Shell tokens defined in
   * `--papaya-whip: #feeac7` (Card borders, table headers, subtle surface tint)
   * `--golden-sand: #cad182` (Success/active badges, completion accents)
   * Semantic tokens (`--color-surface: #ffffff`, `--color-text-main: #2d1c0b`, `--color-text-muted: #6b5e51`, `--color-error: #b3261e`, `--color-error-bg: #fdf2f2`).
-* **Habit Color Presets & Custom Picker (9 Color Choices)**:
-  * Sprint 1's 8 swatches (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`) remain rendered as the first 8 circular swatches in `ColorPicker.tsx`.
-  * A **9th circular swatch button** (`"Custom Color"`) sits beside the 8 swatches; clicking it opens an inline popover/panel with a **color wheel** (`<input type="color">` / spectrum picker) and a **`#RRGGBB` hex code text input** (`FR-S2-01`).
+* **Habit Color Palette (`FR-05`, `BR-02` — Unchanged from Sprint 1)**:
+  * Sprint 1's fixed 8 swatches (`#448aff`, `#1565c0`, `#009688`, `#8bc34a`, `#ffc107`, `#ff9800`, `#f44336`, `#ad1457`) remain unchanged in `ColorPicker.tsx`. Customizable habit colors (9th circle, color wheel, and custom hex input) are deferred out of Sprint 2.
 
 ---
 
@@ -60,18 +59,14 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
   * **Edit**: Closes Quick-View card and opens `EditHabitModal` pre-populated for that habit.
   * **Delete**: Opens confirmation prompt and calls `DELETE /api/habits/:id` (soft-archive `isActive: false`), then refreshes calendar.
 
-### `UI-S2-02`: Habit & Challenge Category & Custom Color Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ProgramBuilder.tsx`, `ColorPicker.tsx`)
+### `UI-S2-02`: Habit & Challenge Category Inputs (`NewHabitModal.tsx`, `EditHabitModal.tsx`, `ProgramBuilder.tsx`)
 * **Category Dropdown (`FR-S2-02`)**:
   * Options on `NewHabitModal` / `EditHabitModal`: `""` (`Uncategorized / None`), `Health & Fitness`, `Sleep & Recovery`, `Mindfulness`, `Productivity`, `Learning`, `Finance`, `Social`, `Home`, `Hobbies`, `__CUSTOM__` (`Custom...`).
   * Options on `ProgramBuilder.tsx`: the 9 presets (`Health & Fitness` default) + `__CUSTOM__` (`Custom...`) (required `1–50` chars, no `"Uncategorized"`).
   * Selecting `Custom...` reveals a text input (`maxLength={50}`) for a custom category label.
   * Pre-existing custom/legacy categories not in the 9 presets automatically select `Custom...` and populate the custom input when editing.
-* **Color Picker (`FR-S2-01`)**:
-  * Renders **9 circular color choices** inside the `role="radiogroup"`: the 8 Sprint 1 quick-select swatches plus a 9th **"Custom Color"** circle (`aria-label="Custom color"`).
-  * When a custom (non-preset) hex is selected, the 9th circle fills with that custom hex and displays the active Walnut focus ring + `✓`; otherwise it shows a subtle multi-color wheel/conic-gradient ring (`+` or palette indicator).
-  * Clicking the 9th circle toggles a **Custom Color Popover/Panel** containing:
-    1. A **color wheel / native picker** (`<input type="color">` or interactive wheel) synced to the active hex.
-    2. A **hex code text input** (`#RRGGBB`, validated against `^#[0-9A-Fa-f]{6}$`) with validation feedback via `aria-live="polite"`.
+* **Color Picker (`FR-05`, `BR-02` — Unchanged from Sprint 1)**:
+  * `ColorPicker.tsx` continues rendering Sprint 1's 8 fixed circular swatches inside `role="radiogroup"`.
 
 ### `UI-S2-03`: Participant Dashboard (`/dashboard`, `DashboardPage.tsx`)
 * **Section 1 — Today's Focus Snippet (`FR-S2-04`)**:
@@ -91,8 +86,8 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
   * **Streak Counters**: Two metric cards — **Current Streak** (`X days`) and **Highest Streak** (`Y days`).
   * **Completion Heatmap**:
     * Toggle control: `[ Month ]` | `[ Year ]` + month/year navigation arrows.
-    * **Month Mode**: Calendar grid for the selected month where unlogged days render at `0%` fill opacity (subtle border) and completed days render at `100%` opacity in `habit.colorHex` with `aria-label` describing date and status.
-    * **Year Mode**: 12-month or 52-week grid shaded in `habit.colorHex` using 5 opacity levels (`0`, `0.25`, `0.5`, `0.75`, `1.0`) with an opacity legend (`0%` to `100%`).
+    * **Month Mode**: Calendar grid for the selected month where unlogged days render at `0%` fill opacity (subtle border) and completed days render at `100%` opacity in the habit's assigned Sprint 1 palette `colorHex` with `aria-label` describing date and status.
+    * **Year Mode**: 12-month or 52-week grid shaded in the habit's assigned Sprint 1 palette `colorHex` using 5 opacity levels (`0`, `0.25`, `0.5`, `0.75`, `1.0`) with an opacity legend (`0%` to `100%`).
 
 ### `UI-S2-05`: Interactive Challenges Hub (`/challenges`, `ChallengesHubPage.tsx`) & Challenge Badges
 * **Discovery Bar (`FR-S2-10`)**: Search input (title/description), Category dropdown, and Enrollment Status filter (`All`, `Available`, `Enrolled`, `Ended`).

@@ -3,6 +3,11 @@ import { Habit } from '../types/habit.js';
 import { createHabit, HabitApiError } from '../services/habits.service.js';
 import { ColorPicker, HABIT_COLOR_PALETTE } from './ColorPicker.js';
 import { DayOfWeekSelector, deriveFrequencyType } from './DayOfWeekSelector.js';
+import {
+  CategorySelector,
+  resolveCategoryValue,
+  validateCategorySelection,
+} from './CategorySelector.js';
 
 export interface NewHabitModalProps {
   isOpen: boolean;
@@ -19,6 +24,8 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
   const [colorHex, setColorHex] = useState(HABIT_COLOR_PALETTE[5].hex); // Amber Glow (#ff9800)
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [startDate, setStartDate] = useState(() => new Date().toLocaleDateString('en-CA'));
@@ -55,6 +62,8 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
   const resetForm = () => {
     setTitle('');
     setDescription('');
+    setSelectedCategoryOption('');
+    setCustomCategory('');
     setColorHex(HABIT_COLOR_PALETTE[5].hex);
     setSelectedDays([1, 2, 3, 4, 5, 6, 7]);
     setStartDate(new Date().toLocaleDateString('en-CA'));
@@ -92,6 +101,15 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
       errors.description = 'Description cannot exceed 500 characters.';
     }
 
+    const categoryError = validateCategorySelection(
+      selectedCategoryOption,
+      customCategory,
+      false
+    );
+    if (categoryError) {
+      errors.category = categoryError;
+    }
+
     if (!startDate) {
       errors.startDate = 'Start date is required.';
     }
@@ -124,6 +142,7 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
       const created = await createHabit({
         title: title.trim(),
         description: description.trim() || undefined,
+        category: resolveCategoryValue(selectedCategoryOption, customCategory),
         colorHex,
         frequency: derivedFrequency,
         daysOfWeek: selectedDays,
@@ -287,6 +306,17 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
               </p>
             )}
           </div>
+
+          {/* Category */}
+          <CategorySelector
+            id="habit-category"
+            selectedOption={selectedCategoryOption}
+            customValue={customCategory}
+            onSelectChange={setSelectedCategoryOption}
+            onCustomChange={setCustomCategory}
+            allowUncategorized={true}
+            error={fieldErrors.category}
+          />
 
           {/* Color Picker */}
           <div>

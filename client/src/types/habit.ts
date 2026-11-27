@@ -11,6 +11,7 @@ export interface Habit {
   userId: number;
   title: string;
   description: string | null;
+  category?: string | null;
   colorHex: string;
   frequency: FrequencyType;
   daysOfWeek: number[];
@@ -27,10 +28,12 @@ export interface ChecklistItem {
   habitId: number;
   title: string;
   description: string | null;
+  category?: string | null;
   colorHex: string;
   frequency: FrequencyType;
   isCompleted: boolean;
   logId: number | null;
+  programId?: number | null;
 }
 
 export interface TodayChecklistResponse {
@@ -43,6 +46,7 @@ export interface TodayChecklistResponse {
 export interface CreateHabitPayload {
   title: string;
   description?: string;
+  category?: string | null;
   colorHex: string;
   frequency: FrequencyType;
   daysOfWeek?: number[];
@@ -54,6 +58,7 @@ export interface CreateHabitPayload {
 export interface UpdateHabitPayload {
   title?: string;
   description?: string | null;
+  category?: string | null;
   colorHex?: string;
   frequency?: FrequencyType;
   daysOfWeek?: number[];
@@ -66,6 +71,7 @@ export interface CalendarHabit {
   habitId: number;
   title: string;
   description?: string | null;
+  category?: string | null;
   colorHex: string;
   frequency?: FrequencyType;
   daysOfWeek?: number[];
@@ -73,6 +79,7 @@ export interface CalendarHabit {
   endDate?: string | null;
   targetCount: number;
   goalAchievedCount: number;
+  programId?: number | null;
   days: Record<string, boolean>;
 }
 
