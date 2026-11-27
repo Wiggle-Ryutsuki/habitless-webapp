@@ -3,6 +3,78 @@ import { prisma } from '../db/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { isHabitScheduledForDate } from '../utils/frequency.js';
 import { calculateMonthlyGoals } from '../utils/goals.js';
+import {
+  computeParticipantDashboard,
+  getMonToSunWeekWindow,
+  isValidIsoDateString,
+  toUtcMidnight,
+} from '../utils/dashboard-calc.js';
+
+export async function getParticipantDashboard(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const dateQuery = req.query.date as string | undefined;
+
+    let dateStr: string;
+    if (dateQuery !== undefined) {
+      if (typeof dateQuery !== 'string' || !isValidIsoDateString(dateQuery)) {
+        throw new AppError(422, 'INVALID_DATE_FORMAT', 'Date must be formatted as YYYY-MM-DD.');
+      }
+      dateStr = dateQuery;
+    } else {
+      dateStr = new Date().toISOString().split('T')[0];
+    }
+
+    const activeHabits = await prisma.habit.findMany({
+      where: {
+        userId,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    if (activeHabits.length === 0) {
+      return res.status(200).json(computeParticipantDashboard([], [], dateStr));
+    }
+
+    const { anchorDate, weekStartDate, weekEndDate } = getMonToSunWeekWindow(dateStr);
+
+    // Fetch completed logs spanning the Mon-Sun week and any active challenge-linked history
+    let minLogDate = weekStartDate;
+    for (const habit of activeHabits) {
+      if (habit.programId !== null) {
+        const habitStart = toUtcMidnight(habit.startDate);
+        if (habitStart.getTime() < minLogDate.getTime()) {
+          minLogDate = habitStart;
+        }
+      }
+    }
+    const maxLogDate =
+      anchorDate.getTime() > weekEndDate.getTime() ? anchorDate : weekEndDate;
+
+    const logs = await prisma.habitLog.findMany({
+      where: {
+        habitId: { in: activeHabits.map((h) => h.id) },
+        completed: true,
+        logDate: {
+          gte: minLogDate,
+          lte: maxLogDate,
+        },
+      },
+      select: {
+        habitId: true,
+        logDate: true,
+        completed: true,
+      },
+    });
+
+    return res.status(200).json(computeParticipantDashboard(activeHabits, logs, dateStr));
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function getTodayChecklist(req: Request, res: Response, next: NextFunction) {
   try {

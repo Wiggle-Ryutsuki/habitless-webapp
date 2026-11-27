@@ -126,3 +126,51 @@ export interface UpdateNotePayload {
   habitId?: number | null;
 }
 
+export interface DashboardWeekDay {
+  date: string;
+  dayLabel: string;
+  dayNumber: number;
+  isToday: boolean;
+}
+
+export interface DashboardFocusItem {
+  habitId: number;
+  title: string;
+  category: string | null;
+  colorHex: string;
+  frequency: FrequencyType;
+  isCompleted: boolean;
+}
+
+export interface DashboardWeeklyProgressItem {
+  habitId: number;
+  title: string;
+  category: string | null;
+  colorHex: string;
+  frequency: FrequencyType;
+  completedDaysThisWeek: number;
+  scheduledDaysThisWeek: number;
+  percentage: number;
+}
+
+export interface DashboardProgramCompletion {
+  activeProgramsCount: number;
+  totalCompletedLogs: number;
+  totalScheduledDaysToDate: number;
+  percentage: number;
+}
+
+export interface ParticipantDashboardResponse {
+  date: string;
+  weekStart: string;
+  weekEnd: string;
+  weekDays: DashboardWeekDay[];
+  todayFocus: {
+    totalScheduled: number;
+    completedCount: number;
+    items: DashboardFocusItem[];
+  };
+  weeklyProgress: DashboardWeeklyProgressItem[];
+  programCompletion: DashboardProgramCompletion;
+}
+

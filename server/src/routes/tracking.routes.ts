@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Role } from '@prisma/client';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import {
+  getParticipantDashboard,
   getTodayChecklist,
   logHabit,
   getCalendarMatrix,
@@ -18,6 +19,7 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole([Role.PARTICIPANT], 'PARTICIPANT_ROLE_REQUIRED'));
 
+router.get('/dashboard', getParticipantDashboard);
 router.get('/today', getTodayChecklist);
 router.post('/log', logHabit);
 router.get('/calendar', getCalendarMatrix);
