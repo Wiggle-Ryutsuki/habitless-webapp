@@ -24,7 +24,7 @@ Expand the completed Sprint 1 MVP into a full-featured, analytical, and interact
 * **Program Managers** gain:
   * A **Program Manager Dashboard** (`/manager/dashboard`) displaying platform-wide **Most Popular Challenges** and **Top Categories** analytics.
   * A **Global Challenges Directory** (`/manager/challenges`) displaying all `PUBLISHED` challenges across all Program Managers, with read-only **Challenge Detail View Pages** (`/manager/challenges/:id`).
-  * Complete **Challenge Lifecycle Management** (unpublishing to `DRAFT`, editing, versioned republishing without breaking participant snapshots) and 1-level **Comment Replies** on challenge threads.
+  * Complete **Challenge Lifecycle Management** (unpublishing to `DRAFT`, editing, versioned republishing without breaking participant snapshots), an in-place **View-Only Challenge Layout Preview** (before or after publishing directly from `/manager`), and 1-level **Comment Replies** on challenge threads.
 
 ---
 
@@ -65,6 +65,7 @@ Expand the completed Sprint 1 MVP into a full-featured, analytical, and interact
 | **FR-S2-14** | Participant | Challenge Ratings & Comments | Participants with `ACTIVE` or `COMPLETED` enrollment in a challenge can submit/update a `1–5` integer rating and post comments (`1–500` characters) on that challenge. | `habitless_sprint2_draft.pdf`, Sec. 2 |
 | **FR-S2-15** | Program Manager | Program Manager Analytics Dashboard (`/manager/dashboard`) | `/manager/dashboard` shall display platform-wide analytics ranking **Most Popular Challenges** (by active + completed enrollment count) and **Top Categories** (by total enrollments and completion rate). In Top Categories statistics, any category name not matching one of the 9 presets shall be aggregated and displayed under `"Other"` until inspected further (expandable drill-down). | `habitless_sprint2_draft.pdf`, Sec. 3 |
 | **FR-S2-16** | Program Manager | Global Directory, Read-Only Detail View, Lifecycle & Comment Replies | `/manager/challenges` shall list all `PUBLISHED` challenges across all Program Managers; clicking a card opens `/manager/challenges/:id` (read-only details, comment threads, `Back` button). Management actions (edit, publish, unpublish, delete) remain centralized on `/manager`. Unpublishing reverts to `DRAFT` and triggers participant `ENDED` handling; republishing after edits increments `ChallengeProgram.version` while preserving ratings/comments. Program Managers can post 1-level replies (`parentCommentId`) on any challenge thread. | `habitless_sprint2_draft.pdf`, Sec. 3–4 |
+| **FR-S2-17** | Program Manager | In-Place Challenge Layout Preview | On `/manager` (`ProgramBuilder.tsx`), Program Managers shall have a view-only preview capability without navigating to another page: (1) an **Edit \| Preview** tab toggle inside the Challenge Create/Edit modal to preview unsaved challenge details live in the participant invitation layout before saving/publishing, and (2) a **Preview** button on each challenge row (`DRAFT`, `PUBLISHED`, `ARCHIVED`) opening a read-only preview modal rendering the participant invitation layout (`ChallengeInvitationCard` in `previewMode`) with enrollment actions disabled. | User Request (Sprint 2 Feature 9) |
 
 ---
 
@@ -142,6 +143,7 @@ enum EnrollmentStatus {
   * Editing activities/frequencies while in `DRAFT` and republishing increments `ChallengeProgram.version`; existing participants keep their snapshot undisturbed and see `"Update Available"` + **"Sync Changes"** in the challenge modal, which updates matched habits via `sourceActivityId`, adds new activities, sets `syncedVersion`, and preserves all `HabitLog` records.
 * **AC-S2-09 (Ratings, Comments & Manager Replies)**: Given an enrolled Participant (`ACTIVE` or `COMPLETED`) on a challenge detail modal/page, when they submit a `1–5` rating and a comment (`1–500` chars), then the average rating and comment thread update; a Program Manager viewing the challenge thread can post a 1-level reply (`parentCommentId`) under that comment.
 * **AC-S2-10 (Manager Analytics Dashboard & Global Directory)**: Given a Program Manager visiting `/manager/dashboard`, they see platform-wide Most Popular Challenges and Top Categories analytics; visiting `/manager/challenges` displays all `PUBLISHED` challenges across all managers, and clicking a card opens `/manager/challenges/:id` in strictly read-only mode (with comment replies and a `Back` button, and zero edit/publish/unpublish/delete actions for non-owned programs).
+* **AC-S2-11 (In-Place Challenge Preview Before & After Publishing)**: Given a Program Manager on `/manager`, when they select the **Preview** tab inside the Create/Edit Challenge modal or click **Preview** on any `DRAFT`, `PUBLISHED`, or `ARCHIVED` challenge row, then a read-only preview displays the participant invitation card layout (banner, category pill, organizer name, duration, guidelines, and activity schedules/targets) with enrollment disabled and form/page state preserved without navigating away from `/manager`.
 
 ---
 
@@ -205,11 +207,12 @@ graph TD
   * Extend `manager.controller.ts` (`updateProgram`, `deployProgram`, `unpublishProgram`) for version tracking, `ENDED` habit transitions, and automatic restoration on unchanged republish.
   * Build `ChallengesHubPage.tsx` (`/challenges`), clickable `"Challenge"` / `"Challenge (Ended)"` badges on calendar/habits, Keep vs. Remove prompt, `"Update Available"` + `"Sync Changes"` modal controls, and rating/comment widgets.
 
-#### Feature 9: Program Manager Analytics, Global Directory & Comment Replies
+#### Feature 9: Program Manager Analytics, Global Directory, Preview & Comment Replies
 * **Branch**: `feature/9-manager-analytics-directory`
 * **Dependencies**: Feature 8 merged (consumes `ProgramEnrollment.status`, `ChallengeRating`, and `ChallengeComment`).
-* **Requirements & Tests**: `FR-S2-15`, `FR-S2-16`, `BR-S2-09`, `BR-S2-10`, `AC-S2-09`, `AC-S2-10`; `API-S2-08`, `UI-S2-06`, `E2E-S2-03`.
+* **Requirements & Tests**: `FR-S2-15`, `FR-S2-16`, `FR-S2-17`, `BR-S2-09`, `BR-S2-10`, `AC-S2-09`, `AC-S2-10`, `AC-S2-11`; `API-S2-08`, `UI-S2-06`, `E2E-S2-03`.
 * **Scope**:
   * Implement `GET /api/manager/analytics` (`API-S2-10`), `GET /api/manager/directory` (`API-S2-11`), `GET /api/manager/directory/:id` (`API-S2-12`), and Program Manager 1-level `parentCommentId` reply support in `POST /api/challenges/:id/comments` (`API-S2-09`).
   * Update `Header.tsx` Program Manager navigation (`Programs`, `Dashboard`, `Directory`).
   * Build `ManagerDashboardPage.tsx` (`/manager/dashboard`), `ManagerDirectoryPage.tsx` (`/manager/challenges`), and strictly read-only `ManagerChallengeDetailPage.tsx` (`/manager/challenges/:id`) with `Back` navigation and comment reply threads.
+  * Add in-place view-only Challenge Layout Preview to `ProgramBuilder.tsx` and `ChallengeInvitationCard.tsx` (`previewMode`): **Edit \| Preview** tabs inside the Create/Edit Challenge modal plus a **Preview** button on every `DRAFT`, `PUBLISHED`, and `ARCHIVED` row on `/manager`.
