@@ -260,7 +260,7 @@ export const ManagerDashboardPage: React.FC = () => {
                           <td style={{ padding: '10px 14px 10px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                             <button
                               type="button"
-                              onClick={() => navigate(`/manager/challenges/${item.id}`)}
+                              onClick={() => navigate(`/manager/challenges/${item.id}?from=dashboard`, { state: { from: 'dashboard' } })}
                               style={{
                                 backgroundColor: 'transparent',
                                 border: '1px solid var(--walnut)',

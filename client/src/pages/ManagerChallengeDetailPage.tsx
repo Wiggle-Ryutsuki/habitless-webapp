@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header.js';
 import { ManagerDirectoryDetail, ChallengeCommentItem } from '../types/challenge.types.js';
 import {
@@ -12,6 +12,10 @@ import { getFrequencyLabel } from '../components/DayOfWeekSelector.js';
 export const ManagerChallengeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const fromDashboard = location.state?.from === 'dashboard' || searchParams.get('from') === 'dashboard';
 
   const [challenge, setChallenge] = useState<ManagerDirectoryDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -108,8 +112,8 @@ export const ManagerChallengeDetailPage: React.FC = () => {
         <div style={{ marginBottom: '1.5rem' }}>
           <button
             type="button"
-            data-testid="back-to-directory-btn"
-            onClick={() => navigate('/manager/challenges')}
+            data-testid={fromDashboard ? 'back-to-dashboard-btn' : 'back-to-directory-btn'}
+            onClick={() => navigate(fromDashboard ? '/manager/dashboard' : '/manager/challenges')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -122,9 +126,10 @@ export const ManagerChallengeDetailPage: React.FC = () => {
               fontWeight: 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
           >
-            ← Back to Directory
+            {fromDashboard ? '← Back to Dashboard' : '← Back to Directory'}
           </button>
         </div>
 

@@ -299,6 +299,31 @@ describe('Sprint 2 Feature 9: Manager Analytics & Directory', () => {
         expect(screen.getByText('Another manager tip!')).toBeInTheDocument();
       });
     });
+
+    it('renders Back to Dashboard button when arriving from most popular challenges with from=dashboard', async () => {
+      vi.spyOn(ManagerService, 'fetchManagerDirectoryDetail').mockResolvedValue(sampleDetail);
+
+      render(
+        <MemoryRouter initialEntries={['/manager/challenges/101?from=dashboard']}>
+          <Routes>
+            <Route path="/manager/challenges/:id" element={<ManagerChallengeDetailPage />} />
+            <Route path="/manager/dashboard" element={<div>Manager Dashboard Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Morning Yoga Challenge')).toBeInTheDocument();
+      });
+
+      const backBtn = screen.getByTestId('back-to-dashboard-btn');
+      expect(backBtn).toHaveTextContent('← Back to Dashboard');
+      fireEvent.click(backBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Manager Dashboard Page')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('ProgramBuilder In-Place Preview (UI-S2-09, FR-S2-17)', () => {
