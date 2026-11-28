@@ -118,17 +118,28 @@ export const Header: React.FC = () => {
                   Programs
                 </Link>
                 <Link
-                  to="/dashboard"
-                  onClick={triggerUnderConstruction}
+                  to="/manager/dashboard"
                   style={{
-                    color: location.pathname === '/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    color: location.pathname === '/manager/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
                     padding: '0.5rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.9375rem',
-                    fontWeight: location.pathname === '/dashboard' ? 600 : 500,
+                    fontWeight: location.pathname === '/manager/dashboard' ? 600 : 500,
                   }}
                 >
                   Dashboard
+                </Link>
+                <Link
+                  to="/manager/challenges"
+                  style={{
+                    color: location.pathname.startsWith('/manager/challenges') ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9375rem',
+                    fontWeight: location.pathname.startsWith('/manager/challenges') ? 600 : 500,
+                  }}
+                >
+                  Directory
                 </Link>
               </>
             )}
@@ -298,19 +309,35 @@ export const Header: React.FC = () => {
                   <Link
                     to="/manager"
                     onClick={() => setMobileMenuOpen(false)}
-                    style={{ padding: '8px 0', fontWeight: 600, color: 'var(--walnut)' }}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/manager' ? 600 : 500,
+                      color: location.pathname === '/manager' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    }}
                   >
                     Programs
                   </Link>
                   <Link
-                    to="/dashboard"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      triggerUnderConstruction();
+                    to="/manager/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname === '/manager/dashboard' ? 600 : 500,
+                      color: location.pathname === '/manager/dashboard' ? 'var(--walnut)' : 'var(--color-text-muted)',
                     }}
-                    style={{ padding: '8px 0', color: 'var(--color-text-muted)' }}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    to="/manager/challenges"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      padding: '8px 0',
+                      fontWeight: location.pathname.startsWith('/manager/challenges') ? 600 : 500,
+                      color: location.pathname.startsWith('/manager/challenges') ? 'var(--walnut)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    Directory
                   </Link>
                 </>
               )}

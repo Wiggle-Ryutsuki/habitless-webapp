@@ -48,7 +48,7 @@ describe('Program Manager Dashboard Fallback Component (UI-08)', () => {
     expect(programsLink).toHaveAttribute('href', '/manager');
   });
 
-  it('keeps Manager Header Dashboard link placeholder toast intact until Feature 9', () => {
+  it('links Manager Header Dashboard link to /manager/dashboard for Feature 9', () => {
     render(
       <BrowserRouter>
         <DashboardPage />
@@ -56,9 +56,6 @@ describe('Program Manager Dashboard Fallback Component (UI-08)', () => {
     );
 
     const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
-    fireEvent.click(dashboardLinks[0]);
-
-    const toast = screen.getByRole('status');
-    expect(toast).toHaveTextContent(/dashboard is still under construction/i);
+    expect(dashboardLinks[0]).toHaveAttribute('href', '/manager/dashboard');
   });
 });

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
   ChallengeProgram,
   CreateProgramPayload,
+  PublicChallenge,
 } from '../types/challenge.types.js';
 import { FrequencyType } from '../types/habit.js';
+import { AuthContext } from '../context/AuthContext.js';
+import { ChallengeInvitationCard } from './ChallengeInvitationCard.js';
 import {
   DayOfWeekSelector,
   deriveFrequencyType,
@@ -18,6 +21,7 @@ import {
 } from './CategorySelector.js';
 import {
   fetchManagerPrograms,
+  fetchManagerProgram,
   createProgram,
   updateProgram,
   deployProgram,
@@ -47,6 +51,8 @@ interface ConfirmDialogState {
 }
 
 export const ProgramBuilder: React.FC = () => {
+  const auth = React.useContext(AuthContext);
+  const user = auth?.user;
   const [programs, setPrograms] = useState<ChallengeProgram[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -60,6 +66,9 @@ export const ProgramBuilder: React.FC = () => {
 
   // Modal Dialog State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalTab, setModalTab] = useState<'EDIT' | 'PREVIEW'>('EDIT');
+  const [rowPreviewProgram, setRowPreviewProgram] = useState<ChallengeProgram | null>(null);
+  const [rowPreviewLoading, setRowPreviewLoading] = useState<boolean>(false);
   const [editingProgramId, setEditingProgramId] = useState<number | null>(null);
   const [isPreviouslyPublished, setIsPreviouslyPublished] = useState<boolean>(false);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
@@ -127,6 +136,7 @@ export const ProgramBuilder: React.FC = () => {
     ]);
     setFieldErrors({});
     setErrorMessage(null);
+    setModalTab('EDIT');
     setIsModalOpen(true);
   };
 
@@ -171,6 +181,7 @@ export const ProgramBuilder: React.FC = () => {
     }
     setFieldErrors({});
     setErrorMessage(null);
+    setModalTab('EDIT');
     setIsModalOpen(true);
   };
 
@@ -179,6 +190,23 @@ export const ProgramBuilder: React.FC = () => {
     setEditingProgramId(null);
     setIsPreviouslyPublished(false);
     setFieldErrors({});
+    setModalTab('EDIT');
+  };
+
+  const handleRowPreview = async (prog: ChallengeProgram) => {
+    try {
+      setRowPreviewLoading(true);
+      if (!prog.activities || prog.activities.length === 0) {
+        const full = await fetchManagerProgram(prog.id);
+        setRowPreviewProgram(full);
+      } else {
+        setRowPreviewProgram(prog);
+      }
+    } catch {
+      setRowPreviewProgram(prog);
+    } finally {
+      setRowPreviewLoading(false);
+    }
   };
 
   const handleAddActivity = () => {
@@ -809,6 +837,22 @@ export const ProgramBuilder: React.FC = () => {
                       {/* Actions */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleRowPreview(prog)}
+                            style={{
+                              backgroundColor: 'transparent',
+                              border: '1px solid var(--walnut)',
+                              color: 'var(--walnut)',
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Preview
+                          </button>
                           {isDraft && (
                             <>
                               <button
@@ -947,7 +991,7 @@ export const ProgramBuilder: React.FC = () => {
               backgroundColor: '#ffffff',
               borderRadius: '14px',
               width: '100%',
-              maxWidth: '580px',
+              maxWidth: modalTab === 'PREVIEW' ? '760px' : '580px',
               maxHeight: '90vh',
               overflowY: 'auto',
               boxShadow: '0 12px 36px rgba(114, 67, 25, 0.25)',
@@ -980,6 +1024,100 @@ export const ProgramBuilder: React.FC = () => {
               </button>
             </div>
 
+            {/* Segmented Edit | Preview Tabs */}
+            <div
+              role="tablist"
+              aria-label="Challenge Editor Modes"
+              style={{
+                display: 'flex',
+                borderBottom: '2px solid var(--papaya-whip)',
+                marginBottom: '4px',
+              }}
+            >
+              <button
+                type="button"
+                role="tab"
+                id="tab-edit"
+                aria-selected={modalTab === 'EDIT'}
+                onClick={() => setModalTab('EDIT')}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  fontWeight: modalTab === 'EDIT' ? 700 : 500,
+                  color: modalTab === 'EDIT' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                  borderBottom: modalTab === 'EDIT' ? '3px solid var(--walnut)' : '3px solid transparent',
+                  background: 'none',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.9375rem',
+                  marginBottom: '-2px',
+                }}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-preview"
+                aria-selected={modalTab === 'PREVIEW'}
+                onClick={() => setModalTab('PREVIEW')}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  fontWeight: modalTab === 'PREVIEW' ? 700 : 500,
+                  color: modalTab === 'PREVIEW' ? 'var(--walnut)' : 'var(--color-text-muted)',
+                  borderBottom: modalTab === 'PREVIEW' ? '3px solid var(--walnut)' : '3px solid transparent',
+                  background: 'none',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.9375rem',
+                  marginBottom: '-2px',
+                }}
+              >
+                Preview
+              </button>
+            </div>
+
+            {modalTab === 'PREVIEW' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <ChallengeInvitationCard
+                  challenge={{
+                    id: editingProgramId || 0,
+                    title: title.trim() || 'Untitled Challenge',
+                    description: description.trim() || null,
+                    category: resolveCategoryValue(selectedCategoryOption, customCategory) || HABIT_CATEGORY_PRESETS[0],
+                    durationDays: Number(durationDays) || 30,
+                    startDate: startDate || new Date().toISOString(),
+                    endDate: endDate || new Date(Date.now() + 29 * 86400000).toISOString(),
+                    status: 'PUBLISHED',
+                    version: 1,
+                    manager: {
+                      fullName: user?.fullName || 'Program Manager',
+                    },
+                    activitiesCount: activities.length,
+                    enrollmentsCount: 0,
+                    averageRating: 0,
+                    ratingsCount: 0,
+                    myEnrollment: null,
+                    activities: activities.map((a, idx) => ({
+                      id: idx + 1,
+                      title: a.title.trim() || `Activity ${idx + 1}`,
+                      description: a.description.trim() || null,
+                      frequency: a.frequency,
+                      daysOfWeek: a.daysOfWeek,
+                      targetCount: a.targetCount || 1,
+                    })),
+                    comments: [],
+                  }}
+                  previewMode={true}
+                />
+              </div>
+            ) : (
+              <>
             {isPreviouslyPublished && (
               <div
                 role="note"
@@ -1456,6 +1594,119 @@ export const ProgramBuilder: React.FC = () => {
                 </button>
               </div>
             </form>
+            </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Row Preview Modal */}
+      {rowPreviewProgram && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Challenge Preview"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(45, 28, 11, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setRowPreviewProgram(null);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '14px',
+              width: '100%',
+              maxWidth: '760px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 12px 36px rgba(114, 67, 25, 0.25)',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--walnut)', fontWeight: 700, margin: 0 }}>
+                Challenge Layout Preview
+              </h2>
+              <button
+                type="button"
+                onClick={() => setRowPreviewProgram(null)}
+                aria-label="Close preview"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.25rem',
+                  color: 'var(--walnut)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  lineHeight: 1,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <ChallengeInvitationCard
+              challenge={{
+                id: rowPreviewProgram.id,
+                title: rowPreviewProgram.title,
+                description: rowPreviewProgram.description,
+                category: rowPreviewProgram.category,
+                durationDays: rowPreviewProgram.durationDays,
+                startDate: rowPreviewProgram.startDate,
+                endDate: rowPreviewProgram.endDate,
+                status: rowPreviewProgram.status,
+                version: rowPreviewProgram.version || 1,
+                manager: {
+                  fullName: user?.fullName || 'Program Manager',
+                },
+                activitiesCount: rowPreviewProgram.activities?.length || rowPreviewProgram.activitiesCount || 0,
+                enrollmentsCount: rowPreviewProgram.enrollmentsCount || 0,
+                averageRating: 0,
+                ratingsCount: 0,
+                myEnrollment: null,
+                activities: (rowPreviewProgram.activities || []).map((a, idx) => ({
+                  id: a.id || idx + 1,
+                  title: a.title,
+                  description: a.description || null,
+                  frequency: a.frequency,
+                  daysOfWeek: a.daysOfWeek,
+                  targetCount: a.targetCount || 1,
+                })),
+                comments: [],
+              }}
+              previewMode={true}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setRowPreviewProgram(null)}
+                style={{
+                  backgroundColor: 'var(--walnut)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Close Preview
+              </button>
+            </div>
           </div>
         </div>
       )}

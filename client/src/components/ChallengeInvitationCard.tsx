@@ -7,9 +7,10 @@ import { getFrequencyLabel, DAYS_OF_WEEK } from './DayOfWeekSelector.js';
 
 interface ChallengeInvitationCardProps {
   challenge: PublicChallenge;
+  previewMode?: boolean;
 }
 
-export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = ({ challenge }) => {
+export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = ({ challenge, previewMode = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [joining, setJoining] = useState<boolean>(false);
@@ -61,6 +62,7 @@ export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = (
 
   return (
     <div
+      data-testid="challenge-invitation-card"
       style={{
         maxWidth: '720px',
         margin: '2rem auto',
@@ -71,6 +73,27 @@ export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = (
         overflow: 'hidden',
       }}
     >
+      {previewMode && (
+        <div
+          data-testid="preview-mode-banner"
+          style={{
+            backgroundColor: '#fff3cd',
+            color: '#856404',
+            padding: '10px 16px',
+            borderBottom: '1px solid #ffeeba',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>👁️</span>
+          <span>Preview Mode — Participant View</span>
+        </div>
+      )}
       {/* Header Banner */}
       <div
         style={{
@@ -260,7 +283,27 @@ export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = (
 
         {/* Action Button Area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {!user ? (
+          {previewMode ? (
+            <button
+              type="button"
+              disabled
+              data-testid="preview-mode-join-disabled"
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--papaya-whip)',
+                color: 'var(--walnut)',
+                border: '1px solid #d4be93',
+                padding: '14px 20px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '1rem',
+                cursor: 'not-allowed',
+                opacity: 0.85,
+              }}
+            >
+              Preview Mode (Enrollment Disabled)
+            </button>
+          ) : !user ? (
             <button
               type="button"
               onClick={handleJoin}

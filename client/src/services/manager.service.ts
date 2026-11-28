@@ -2,6 +2,10 @@ import {
   ChallengeProgram,
   CreateProgramPayload,
   UpdateProgramPayload,
+  ManagerAnalyticsData,
+  ManagerDirectoryItem,
+  ManagerDirectoryDetail,
+  ChallengeCommentItem,
 } from '../types/challenge.types.js';
 
 const API_BASE = '/api';
@@ -105,4 +109,50 @@ export async function deleteProgram(id: number): Promise<{ message: string; id: 
     credentials: 'include',
   });
   return handleResponse<{ message: string; id: number }>(res);
+}
+
+export async function fetchManagerAnalytics(): Promise<ManagerAnalyticsData> {
+  const res = await fetch(`${API_BASE}/manager/analytics`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  return handleResponse<ManagerAnalyticsData>(res);
+}
+
+export async function fetchManagerDirectory(params?: { q?: string; category?: string }): Promise<ManagerDirectoryItem[]> {
+  const queryParams = new URLSearchParams();
+  if (params?.q) queryParams.set('q', params.q);
+  if (params?.category && params.category !== 'ALL') queryParams.set('category', params.category);
+
+  const queryStr = queryParams.toString();
+  const url = `${API_BASE}/manager/directory${queryStr ? `?${queryStr}` : ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  return handleResponse<ManagerDirectoryItem[]>(res);
+}
+
+export async function fetchManagerDirectoryDetail(id: number): Promise<ManagerDirectoryDetail> {
+  const res = await fetch(`${API_BASE}/manager/directory/${id}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  return handleResponse<ManagerDirectoryDetail>(res);
+}
+
+export async function postManagerReply(programId: number, parentCommentId: number, content: string): Promise<ChallengeCommentItem> {
+  const res = await fetch(`${API_BASE}/challenges/${programId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      parentCommentId,
+      content,
+    }),
+  });
+  return handleResponse<ChallengeCommentItem>(res);
 }

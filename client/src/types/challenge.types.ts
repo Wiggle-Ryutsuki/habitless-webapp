@@ -150,3 +150,88 @@ export interface RateChallengeResponse {
   averageRating: number;
   ratingsCount: number;
 }
+
+export interface ManagerAnalyticsSummary {
+  totalPublishedChallenges: number;
+  totalActiveEnrollments: number;
+  totalCompletedEnrollments: number;
+}
+
+export interface ManagerPopularChallenge {
+  id: number;
+  title: string;
+  category: string;
+  durationDays: number;
+  managerName: string;
+  enrollmentCount: number;
+  averageRating: number;
+}
+
+export interface ManagerTopCategoryCustom {
+  category: string;
+  challengesCount: number;
+  totalEnrollments: number;
+  completionRate: number;
+}
+
+export interface ManagerTopCategory {
+  category: string;
+  isPreset: boolean;
+  challengesCount: number;
+  totalEnrollments: number;
+  completionRate: number;
+  customCategories?: ManagerTopCategoryCustom[];
+}
+
+export interface ManagerAnalyticsData {
+  summary: ManagerAnalyticsSummary;
+  mostPopularChallenges: ManagerPopularChallenge[];
+  topCategories: ManagerTopCategory[];
+}
+
+export interface ManagerDirectoryItem {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string;
+  durationDays: number;
+  startDate: string;
+  endDate: string;
+  status: ProgramStatus;
+  version: number;
+  manager: {
+    id: number;
+    fullName: string;
+  };
+  isOwnedByMe: boolean;
+  activitiesCount: number;
+  enrollmentsCount: number;
+  averageRating: number;
+  ratingsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ManagerDirectoryDetail {
+  id: number;
+  title: string;
+  description: string | null;
+  category: string;
+  durationDays: number;
+  startDate: string;
+  endDate: string;
+  status: ProgramStatus;
+  version: number;
+  manager: {
+    id: number;
+    fullName: string;
+  };
+  isOwnedByMe: boolean;
+  activities: PublicChallengeActivity[];
+  averageRating: number;
+  ratingsCount: number;
+  comments: ChallengeCommentItem[];
+  enrollmentsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}

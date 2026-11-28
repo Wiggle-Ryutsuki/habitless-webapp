@@ -3,6 +3,7 @@ import { prisma } from '../db/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { validateProgramInput } from '../utils/program-validator.js';
 import { getDaysFromFrequency, deriveFrequencyFromDays } from '../utils/frequency.js';
+import { isPresetCategory } from '../utils/categories.js';
 
 export async function listManagerPrograms(req: Request, res: Response, next: NextFunction) {
   try {
@@ -494,6 +495,412 @@ export async function unpublishProgram(req: Request, res: Response, next: NextFu
       inviteUrl: null,
       unpublishedAt: updated.updatedAt,
       message: 'Challenge program unpublished successfully and reverted to draft.',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /api/manager/analytics (API-S2-10)
+export async function getManagerAnalytics(req: Request, res: Response, next: NextFunction) {
+  try {
+    const publishedPrograms = await prisma.challengeProgram.findMany({
+      where: { status: 'PUBLISHED' },
+      include: {
+        manager: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        enrollments: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+        ratings: {
+          select: {
+            rating: true,
+          },
+        },
+      },
+    });
+
+    const totalPublishedChallenges = publishedPrograms.length;
+
+    const allEnrollments = await prisma.programEnrollment.findMany({
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    const totalActiveEnrollments = allEnrollments.filter((e) => e.status === 'ACTIVE').length;
+    const totalCompletedEnrollments = allEnrollments.filter((e) => e.status === 'COMPLETED').length;
+
+    const mostPopularChallenges = publishedPrograms
+      .map((p) => {
+        const activeOrCompletedEnrollments = p.enrollments.filter(
+          (e) => e.status === 'ACTIVE' || e.status === 'COMPLETED'
+        ).length;
+        const ratingsCount = p.ratings.length;
+        const averageRating =
+          ratingsCount > 0
+            ? Math.round((p.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount) * 10) / 10
+            : 0;
+
+        const durationDays =
+          p.durationDays ||
+          Math.max(
+            1,
+            Math.round(
+              (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) /
+                (1000 * 60 * 60 * 24)
+            ) + 1
+          );
+
+        return {
+          id: p.id,
+          title: p.title,
+          category: p.category,
+          durationDays,
+          managerName: p.manager.fullName,
+          enrollmentCount: activeOrCompletedEnrollments,
+          averageRating,
+        };
+      })
+      .sort((a, b) => b.enrollmentCount - a.enrollmentCount || b.averageRating - a.averageRating)
+      .slice(0, 10);
+
+    const categoryMap = new Map<
+      string,
+      {
+        challengesCount: number;
+        totalEnrollments: number;
+        completedEnrollments: number;
+      }
+    >();
+
+    for (const p of publishedPrograms) {
+      const cat = p.category.trim();
+      const current = categoryMap.get(cat) || {
+        challengesCount: 0,
+        totalEnrollments: 0,
+        completedEnrollments: 0,
+      };
+
+      const enrollmentsCount = p.enrollments.filter(
+        (e) => e.status === 'ACTIVE' || e.status === 'COMPLETED'
+      ).length;
+      const completedCount = p.enrollments.filter((e) => e.status === 'COMPLETED').length;
+
+      current.challengesCount += 1;
+      current.totalEnrollments += enrollmentsCount;
+      current.completedEnrollments += completedCount;
+      categoryMap.set(cat, current);
+    }
+
+    const presetCategoriesList: any[] = [];
+    const customCategoriesList: any[] = [];
+    let otherTotalChallenges = 0;
+    let otherTotalEnrollments = 0;
+    let otherCompletedEnrollments = 0;
+
+    for (const [catName, data] of categoryMap.entries()) {
+      const completionRate =
+        data.totalEnrollments > 0
+          ? Math.round((data.completedEnrollments / data.totalEnrollments) * 100)
+          : 0;
+
+      if (isPresetCategory(catName)) {
+        presetCategoriesList.push({
+          category: catName,
+          isPreset: true,
+          challengesCount: data.challengesCount,
+          totalEnrollments: data.totalEnrollments,
+          completionRate,
+        });
+      } else {
+        otherTotalChallenges += data.challengesCount;
+        otherTotalEnrollments += data.totalEnrollments;
+        otherCompletedEnrollments += data.completedEnrollments;
+        customCategoriesList.push({
+          category: catName,
+          challengesCount: data.challengesCount,
+          totalEnrollments: data.totalEnrollments,
+          completionRate,
+        });
+      }
+    }
+
+    const topCategories: any[] = [...presetCategoriesList];
+
+    if (customCategoriesList.length > 0) {
+      const otherCompletionRate =
+        otherTotalEnrollments > 0
+          ? Math.round((otherCompletedEnrollments / otherTotalEnrollments) * 100)
+          : 0;
+
+      topCategories.push({
+        category: 'Other',
+        isPreset: false,
+        challengesCount: otherTotalChallenges,
+        totalEnrollments: otherTotalEnrollments,
+        completionRate: otherCompletionRate,
+        customCategories: customCategoriesList.sort(
+          (a, b) => b.totalEnrollments - a.totalEnrollments || b.challengesCount - a.challengesCount
+        ),
+      });
+    }
+
+    topCategories.sort(
+      (a, b) => b.totalEnrollments - a.totalEnrollments || b.challengesCount - a.challengesCount
+    );
+
+    res.json({
+      summary: {
+        totalPublishedChallenges,
+        totalActiveEnrollments,
+        totalCompletedEnrollments,
+      },
+      mostPopularChallenges,
+      topCategories,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /api/manager/directory (API-S2-11)
+export async function listManagerDirectory(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { q, category } = req.query;
+    const currentUserId = req.user!.id;
+
+    const where: any = {
+      status: 'PUBLISHED',
+    };
+
+    if (typeof q === 'string' && q.trim().length > 0) {
+      const query = q.trim();
+      where.OR = [
+        { title: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
+    if (typeof category === 'string' && category.trim().length > 0 && category.trim() !== 'ALL') {
+      where.category = category.trim();
+    }
+
+    const programs = await prisma.challengeProgram.findMany({
+      where,
+      include: {
+        manager: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        activities: {
+          select: { id: true },
+        },
+        enrollments: {
+          select: { id: true },
+        },
+        ratings: {
+          select: { rating: true },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const response = programs.map((p) => {
+      const ratingsCount = p.ratings.length;
+      const averageRating =
+        ratingsCount > 0
+          ? Math.round((p.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount) * 10) / 10
+          : 0;
+
+      const durationDays =
+        p.durationDays ||
+        Math.max(
+          1,
+          Math.round(
+            (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) /
+              (1000 * 60 * 60 * 24)
+          ) + 1
+        );
+
+      return {
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        category: p.category,
+        durationDays,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        status: p.status,
+        version: p.version,
+        manager: {
+          id: p.manager.id,
+          fullName: p.manager.fullName,
+        },
+        isOwnedByMe: p.managerId === currentUserId,
+        activitiesCount: p.activities.length,
+        enrollmentsCount: p.enrollments.length,
+        averageRating,
+        ratingsCount,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      };
+    });
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /api/manager/directory/:id (API-S2-12)
+export async function getManagerDirectoryChallenge(req: Request, res: Response, next: NextFunction) {
+  try {
+    const programId = parseInt(req.params.id, 10);
+    if (isNaN(programId) || programId <= 0) {
+      throw new AppError(400, 'BAD_REQUEST', 'Invalid challenge ID.');
+    }
+
+    const currentUserId = req.user!.id;
+
+    const program = await prisma.challengeProgram.findUnique({
+      where: { id: programId },
+      include: {
+        manager: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        activities: {
+          orderBy: { id: 'asc' },
+        },
+        enrollments: {
+          select: { id: true },
+        },
+        ratings: {
+          select: { rating: true },
+        },
+        comments: {
+          where: { parentCommentId: null },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                role: true,
+              },
+            },
+            replies: {
+              orderBy: { createdAt: 'asc' },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    role: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new AppError(404, 'CHALLENGE_NOT_FOUND', 'Challenge program not found.');
+    }
+
+    const isOwnedByMe = program.managerId === currentUserId;
+
+    // Visibility rule: must be PUBLISHED or owned by the manager
+    if (program.status !== 'PUBLISHED' && !isOwnedByMe) {
+      throw new AppError(404, 'CHALLENGE_NOT_FOUND', 'Challenge program not found.');
+    }
+
+    const ratingsCount = program.ratings.length;
+    const averageRating =
+      ratingsCount > 0
+        ? Math.round((program.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount) * 10) / 10
+        : 0;
+
+    const durationDays =
+      program.durationDays ||
+      Math.max(
+        1,
+        Math.round(
+          (new Date(program.endDate).getTime() - new Date(program.startDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        ) + 1
+      );
+
+    const formattedComments = program.comments.map((c) => ({
+      id: c.id,
+      programId: c.programId,
+      parentCommentId: c.parentCommentId,
+      content: c.content,
+      createdAt: c.createdAt,
+      author: {
+        id: c.user.id,
+        fullName: c.user.fullName,
+        role: c.user.role,
+      },
+      replies: (c.replies || []).map((r) => ({
+        id: r.id,
+        programId: r.programId,
+        parentCommentId: r.parentCommentId,
+        content: r.content,
+        createdAt: r.createdAt,
+        author: {
+          id: r.user.id,
+          fullName: r.user.fullName,
+          role: r.user.role,
+        },
+      })),
+    }));
+
+    res.json({
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      category: program.category,
+      durationDays,
+      startDate: program.startDate,
+      endDate: program.endDate,
+      status: program.status,
+      version: program.version,
+      manager: {
+        id: program.manager.id,
+        fullName: program.manager.fullName,
+      },
+      isOwnedByMe,
+      activities: program.activities.map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        frequency: a.frequency,
+        daysOfWeek: a.daysOfWeek,
+        targetCount: a.targetCount,
+      })),
+      averageRating,
+      ratingsCount,
+      comments: formattedComments,
+      enrollmentsCount: program.enrollments.length,
+      createdAt: program.createdAt,
+      updatedAt: program.updatedAt,
     });
   } catch (error) {
     next(error);

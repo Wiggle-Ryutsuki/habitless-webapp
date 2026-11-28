@@ -8,6 +8,9 @@ import { HabitCalendarPage } from './pages/HabitCalendarPage.js';
 import { HabitsDirectoryPage } from './pages/HabitsDirectoryPage.js';
 import { HabitStatsPage } from './pages/HabitStatsPage.js';
 import { ManagerPage } from './pages/ManagerPage.js';
+import { ManagerDashboardPage } from './pages/ManagerDashboardPage.js';
+import { ManagerDirectoryPage } from './pages/ManagerDirectoryPage.js';
+import { ManagerChallengeDetailPage } from './pages/ManagerChallengeDetailPage.js';
 import { ChallengeInvitationPage } from './pages/ChallengeInvitationPage.js';
 import { ChallengesHubPage } from './pages/ChallengesHubPage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
@@ -71,6 +74,33 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute allowedRoles={['PROGRAM_MANAGER']}>
                 <ManagerPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/manager/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['PROGRAM_MANAGER']}>
+                <ManagerDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/manager/challenges"
+            element={
+              <ProtectedRoute allowedRoles={['PROGRAM_MANAGER']}>
+                <ManagerDirectoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/manager/challenges/:id"
+            element={
+              <ProtectedRoute allowedRoles={['PROGRAM_MANAGER']}>
+                <ManagerChallengeDetailPage />
               </ProtectedRoute>
             }
           />
