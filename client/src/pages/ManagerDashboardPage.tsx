@@ -372,56 +372,93 @@ export const ManagerDashboardPage: React.FC = () => {
 
                         {/* Other Category Accordion Drill-down */}
                         {isOther && cat.customCategories && cat.customCategories.length > 0 && (
-                          <div style={{ marginTop: '0.75rem', borderTop: '1px dashed #e2e8f0', paddingTop: '0.5rem' }}>
+                          <div style={{ marginTop: '0.875rem', borderTop: '1px solid #ebdcc5', paddingTop: '0.75rem' }}>
                             <button
                               type="button"
                               data-testid="other-categories-accordion-toggle"
                               onClick={() => setIsOtherExpanded(!isOtherExpanded)}
                               style={{
-                                background: 'none',
-                                border: 'none',
+                                width: '100%',
+                                backgroundColor: isOtherExpanded ? '#ffffff' : '#f5efe6',
+                                border: '1px solid #e2d2bc',
+                                borderRadius: '6px',
                                 color: 'var(--walnut)',
                                 fontSize: '0.8125rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',
-                                padding: '4px 0',
+                                padding: '6px 10px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px',
+                                justifyContent: 'space-between',
+                                transition: 'all 0.15s ease',
                               }}
                             >
-                              <span>{isOtherExpanded ? '▼ Hide' : '▶ Show'} Custom Categories Drill-down ({cat.customCategories.length})</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span>{isOtherExpanded ? '▼' : '▶'}</span>
+                                <span>Custom Categories Breakdown</span>
+                              </span>
+                              <span
+                                style={{
+                                  backgroundColor: 'var(--papaya-whip)',
+                                  color: 'var(--walnut)',
+                                  padding: '1px 7px',
+                                  borderRadius: '10px',
+                                  fontSize: '0.6875rem',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {cat.customCategories.length}
+                              </span>
                             </button>
 
                             {isOtherExpanded && (
                               <div
                                 data-testid="other-categories-drilldown"
                                 style={{
-                                  marginTop: '0.5rem',
+                                  marginTop: '0.75rem',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  gap: '0.5rem',
+                                  gap: '0.625rem',
                                 }}
                               >
                                 {cat.customCategories.map((sub) => (
                                   <div
                                     key={sub.category}
                                     style={{
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center',
-                                      padding: '8px 12px',
                                       backgroundColor: '#ffffff',
-                                      borderRadius: '6px',
-                                      border: '1px solid #e2e8f0',
-                                      fontSize: '0.8125rem',
+                                      borderRadius: '8px',
+                                      border: '1px solid #ebdcc5',
+                                      padding: '10px 12px',
+                                      boxShadow: '0 1px 3px rgba(114, 67, 25, 0.04)',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '5px',
                                     }}
                                   >
-                                    <span style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
-                                      {sub.category}
-                                    </span>
-                                    <div style={{ color: 'var(--color-text-muted)' }}>
-                                      {sub.challengesCount} challenges · {sub.totalEnrollments} enrollments · {sub.completionRate}% completion
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ fontWeight: 700, color: 'var(--walnut)', fontSize: '0.875rem' }}>
+                                        {sub.category}
+                                      </span>
+                                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--walnut)' }}>
+                                        {sub.completionRate}% completion
+                                      </span>
+                                    </div>
+
+                                    {/* Mini completion bar */}
+                                    <div style={{ height: '5px', backgroundColor: '#f0e6d6', borderRadius: '3px', overflow: 'hidden' }}>
+                                      <div
+                                        style={{
+                                          width: `${Math.min(100, Math.max(0, sub.completionRate))}%`,
+                                          height: '100%',
+                                          backgroundColor: 'var(--walnut)',
+                                          borderRadius: '3px',
+                                        }}
+                                      />
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                      <span>{sub.challengesCount} {sub.challengesCount === 1 ? 'challenge' : 'challenges'}</span>
+                                      <span>{sub.totalEnrollments} {sub.totalEnrollments === 1 ? 'enrollment' : 'enrollments'}</span>
                                     </div>
                                   </div>
                                 ))}
