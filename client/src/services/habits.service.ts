@@ -9,6 +9,7 @@ import {
   CreateNotePayload,
   UpdateNotePayload,
   ParticipantDashboardResponse,
+  HabitStatsResponse,
 } from '../types/habit.js';
 
 const API_BASE = '/api';
@@ -101,6 +102,32 @@ export async function fetchHabits(status: 'active' | 'archived' = 'active'): Pro
     credentials: 'include',
   });
   return handleResponse<Habit[]>(res);
+}
+
+export async function fetchHabitStats(
+  habitId: number,
+  options?: {
+    mode?: 'month' | 'year';
+    month?: number;
+    year?: number;
+    date?: string;
+  }
+): Promise<HabitStatsResponse> {
+  const params = new URLSearchParams();
+  if (options?.mode) params.append('mode', options.mode);
+  if (options?.month !== undefined) params.append('month', String(options.month));
+  if (options?.year !== undefined) params.append('year', String(options.year));
+  if (options?.date) params.append('date', options.date);
+  const query = params.toString() ? `?${params.toString()}` : '';
+
+  const res = await fetch(`${API_BASE}/habits/${habitId}/stats${query}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  return handleResponse<HabitStatsResponse>(res);
 }
 
 export async function updateHabit(id: number, payload: UpdateHabitPayload): Promise<Habit> {

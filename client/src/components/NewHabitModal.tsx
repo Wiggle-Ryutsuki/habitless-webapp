@@ -42,9 +42,11 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
   // Focus management & Escape key handling
   useEffect(() => {
     if (isOpen) {
-      // Auto-focus title input
-      setTimeout(() => {
-        titleInputRef.current?.focus();
+      // Auto-focus title input only if focus is not already inside the modal
+      const focusTimer = setTimeout(() => {
+        if (modalRef.current && !modalRef.current.contains(document.activeElement)) {
+          titleInputRef.current?.focus();
+        }
       }, 50);
 
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +56,7 @@ export const NewHabitModal: React.FC<NewHabitModalProps> = ({
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
+        clearTimeout(focusTimer);
         window.removeEventListener('keydown', handleKeyDown);
       };
     }

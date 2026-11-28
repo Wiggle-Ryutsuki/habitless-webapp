@@ -5,6 +5,8 @@ import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { HabitCalendarPage } from './pages/HabitCalendarPage.js';
+import { HabitsDirectoryPage } from './pages/HabitsDirectoryPage.js';
+import { HabitStatsPage } from './pages/HabitStatsPage.js';
 import { ManagerPage } from './pages/ManagerPage.js';
 import { ChallengeInvitationPage } from './pages/ChallengeInvitationPage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
@@ -32,6 +34,24 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute allowedRoles={['PARTICIPANT', 'PROGRAM_MANAGER']}>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/habits"
+            element={
+              <ProtectedRoute allowedRoles={['PARTICIPANT']}>
+                <HabitsDirectoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/habits/:id/stats"
+            element={
+              <ProtectedRoute allowedRoles={['PARTICIPANT']}>
+                <HabitStatsPage />
               </ProtectedRoute>
             }
           />

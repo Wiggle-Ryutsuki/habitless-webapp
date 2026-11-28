@@ -4,7 +4,7 @@ test.describe('Feature 2 & 3: Participant Complete Tracking Journey (E2E-01)', (
   const uniqueEmail = `playwright.tracking.${Date.now()}@example.com`;
   const password = 'SecurePassword123!';
 
-  test('E2E-01: Participant Tracking, Calendar Checkoff & Under-Construction Dashboard Journey', async ({ page }) => {
+  test('E2E-01: Participant Tracking, Calendar Checkoff & Participant Dashboard Journey', async ({ page }) => {
     // 1. Navigate to Registration
     await page.goto('/register');
     await expect(page.getByRole('heading', { name: /habitless/i })).toBeVisible();
@@ -37,9 +37,10 @@ test.describe('Feature 2 & 3: Participant Complete Tracking Journey (E2E-01)', (
       await todayCell.click();
     }
 
-    // 8. Click Dashboard link and verify "Dashboard is still under construction" toast
+    // 8. Click Dashboard link and verify Participant Dashboard (Sprint 2 FR-S2-04 superseded Sprint 1 FR-07)
     await page.getByRole('link', { name: /dashboard/i }).click();
     await page.waitForURL('**/dashboard');
-    await expect(page.getByText(/dashboard is still under construction/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /participant dashboard/i })).toBeVisible();
+    await expect(page.getByText('Hydration 2L').first()).toBeVisible();
   });
 });
