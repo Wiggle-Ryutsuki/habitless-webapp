@@ -150,17 +150,16 @@ export const ManagerChallengeDetailPage: React.FC = () => {
             <div>{error}</div>
           </div>
         ) : challenge ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Challenge Header Card */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: '14px',
-                border: '1px solid var(--papaya-whip)',
-                boxShadow: '0 4px 14px rgba(114, 67, 25, 0.05)',
-                overflow: 'hidden',
-              }}
-            >
+          /* Unified Challenge Detail Card */
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: '16px',
+              border: '1px solid var(--papaya-whip)',
+              boxShadow: '0 4px 16px rgba(114, 67, 25, 0.06)',
+              overflow: 'hidden',
+            }}
+          >
               <div
                 style={{
                   backgroundColor: 'var(--walnut)',
@@ -286,7 +285,7 @@ export const ManagerChallengeDetailPage: React.FC = () => {
               </div>
 
               {/* Description */}
-              <div style={{ padding: '1.5rem 2rem' }}>
+              <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--papaya-whip)' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 0.5rem 0' }}>
                   About this Challenge
                 </h3>
@@ -294,80 +293,63 @@ export const ManagerChallengeDetailPage: React.FC = () => {
                   {challenge.description || 'No description provided by the manager.'}
                 </p>
               </div>
-            </div>
 
-            {/* Curriculum Activities */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: '14px',
-                border: '1px solid var(--papaya-whip)',
-                padding: '1.5rem 2rem',
-                boxShadow: '0 4px 14px rgba(114, 67, 25, 0.05)',
-              }}
-            >
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 1rem 0' }}>
-                Curriculum Activities ({challenge.activities.length})
-              </h2>
+              {/* Curriculum Activities Section */}
+              <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--papaya-whip)' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 1rem 0' }}>
+                  Curriculum Activities ({challenge.activities.length})
+                </h2>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {challenge.activities.map((act, idx) => (
-                  <div
-                    key={act.id}
-                    style={{
-                      padding: '1rem',
-                      backgroundColor: '#fffdfa',
-                      borderRadius: '8px',
-                      border: '1px solid var(--papaya-whip)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--walnut)', fontSize: '0.9375rem' }}>
-                        {idx + 1}. {act.title}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {challenge.activities.map((act, idx) => (
+                    <div
+                      key={act.id}
+                      style={{
+                        padding: '1rem',
+                        backgroundColor: '#fffdfa',
+                        borderRadius: '8px',
+                        border: '1px solid var(--papaya-whip)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--walnut)', fontSize: '0.9375rem' }}>
+                          {idx + 1}. {act.title}
+                        </div>
+                        <span
+                          style={{
+                            backgroundColor: 'var(--papaya-whip)',
+                            color: 'var(--walnut)',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          {act.daysOfWeek && act.daysOfWeek.length > 0
+                            ? getFrequencyLabel(act.daysOfWeek)
+                            : act.frequency}
+                        </span>
                       </div>
-                      <span
-                        style={{
-                          backgroundColor: 'var(--papaya-whip)',
-                          color: 'var(--walnut)',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                        }}
-                      >
-                        {act.daysOfWeek && act.daysOfWeek.length > 0
-                          ? getFrequencyLabel(act.daysOfWeek)
-                          : act.frequency}
-                      </span>
-                    </div>
 
-                    {act.description && (
-                      <p style={{ margin: '0.25rem 0 0.5rem 0', color: 'var(--color-text-muted)', fontSize: '0.8125rem', lineHeight: 1.4 }}>
-                        {act.description}
-                      </p>
-                    )}
+                      {act.description && (
+                        <p style={{ margin: '0.25rem 0 0.5rem 0', color: 'var(--color-text-muted)', fontSize: '0.8125rem', lineHeight: 1.4 }}>
+                          {act.description}
+                        </p>
+                      )}
 
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                      Target: <strong>{act.targetCount}</strong> time{act.targetCount > 1 ? 's' : ''} per scheduled day
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                        Target: <strong>{act.targetCount}</strong> time{act.targetCount > 1 ? 's' : ''} per scheduled day
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Comments & Discussion */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: '14px',
-                border: '1px solid var(--papaya-whip)',
-                padding: '1.5rem 2rem',
-                boxShadow: '0 4px 14px rgba(114, 67, 25, 0.05)',
-              }}
-            >
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 1rem 0' }}>
-                Participant Discussions & Comments ({challenge.comments.length})
-              </h2>
+              {/* Comments & Discussion Section */}
+              <div style={{ padding: '1.5rem 2rem 2rem 2rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 1rem 0' }}>
+                  Participant Discussions & Comments ({challenge.comments.length})
+                </h2>
 
               {challenge.comments.length === 0 ? (
                 <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
