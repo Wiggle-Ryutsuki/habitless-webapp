@@ -37,6 +37,7 @@ export async function listManagerPrograms(req: Request, res: Response, next: Nex
         status: p.status,
         previouslyPublished: p.previouslyPublished,
         activitiesCount: p.activities.length,
+        activities: p.activities,
         enrollmentsCount: p._count.enrollments,
         inviteUrl: p.status === 'PUBLISHED' ? `/challenges/${p.id}` : null,
         createdAt: p.createdAt,

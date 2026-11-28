@@ -140,31 +140,41 @@ export const ProgramBuilder: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleEditDraft = (prog: ChallengeProgram) => {
-    setEditingProgramId(prog.id);
-    setIsPreviouslyPublished(Boolean(prog.previouslyPublished));
-    const initialCategory = getInitialCategoryState(prog.category, false);
-    setTitle(prog.title);
+  const handleEditDraft = async (prog: ChallengeProgram) => {
+    let programData = prog;
+    if (!prog.activities || prog.activities.length === 0) {
+      try {
+        programData = await fetchManagerProgram(prog.id);
+      } catch (err) {
+        console.error('Failed to fetch program activities for edit:', err);
+        programData = prog;
+      }
+    }
+
+    setEditingProgramId(programData.id);
+    setIsPreviouslyPublished(Boolean(programData.previouslyPublished));
+    const initialCategory = getInitialCategoryState(programData.category, false);
+    setTitle(programData.title);
     setSelectedCategoryOption(initialCategory.selectedOption);
     setCustomCategory(initialCategory.customValue);
-    setDescription(prog.description || '');
-    const initialDays = prog.durationDays || (prog.startDate && prog.endDate
-      ? Math.max(1, Math.round((new Date(prog.endDate).getTime() - new Date(prog.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)
+    setDescription(programData.description || '');
+    const initialDays = programData.durationDays || (programData.startDate && programData.endDate
+      ? Math.max(1, Math.round((new Date(programData.endDate).getTime() - new Date(programData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)
       : 30);
     setDurationDays(initialDays);
-    setStartDate(prog.startDate ? prog.startDate.split('T')[0] : '');
-    setEndDate(prog.endDate ? prog.endDate.split('T')[0] : '');
+    setStartDate(programData.startDate ? programData.startDate.split('T')[0] : '');
+    setEndDate(programData.endDate ? programData.endDate.split('T')[0] : '');
 
-    if (prog.activities && prog.activities.length > 0) {
+    if (programData.activities && programData.activities.length > 0) {
       setActivities(
-        prog.activities.map((a) => {
+        programData.activities.map((a) => {
           const days = getInitialDaysOfWeek(a.frequency, a.daysOfWeek);
           return {
             title: a.title,
             description: a.description || '',
             frequency: a.frequency || deriveFrequencyType(days),
             daysOfWeek: days,
-            targetCount: a.targetCount,
+            targetCount: a.targetCount || 1,
           };
         })
       );
