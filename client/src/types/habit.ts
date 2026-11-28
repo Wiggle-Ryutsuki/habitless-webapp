@@ -20,6 +20,19 @@ export interface Habit {
   targetCount: number;
   isActive: boolean;
   programId: number | null;
+  sourceActivityId?: number | null;
+  challengeStatus?: 'ACTIVE' | 'ENDED' | null;
+  syncedVersion?: number | null;
+  programTitle?: string | null;
+  programVersion?: number | null;
+  programStatus?: string | null;
+  updateAvailable?: boolean;
+  program?: {
+    id: number;
+    title: string;
+    version: number;
+    status: string;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +47,13 @@ export interface ChecklistItem {
   isCompleted: boolean;
   logId: number | null;
   programId?: number | null;
+  sourceActivityId?: number | null;
+  challengeStatus?: 'ACTIVE' | 'ENDED' | null;
+  syncedVersion?: number | null;
+  programTitle?: string | null;
+  programVersion?: number | null;
+  programStatus?: string | null;
+  updateAvailable?: boolean;
 }
 
 export interface TodayChecklistResponse {
@@ -80,6 +100,13 @@ export interface CalendarHabit {
   targetCount: number;
   goalAchievedCount: number;
   programId?: number | null;
+  sourceActivityId?: number | null;
+  challengeStatus?: 'ACTIVE' | 'ENDED' | null;
+  syncedVersion?: number | null;
+  programTitle?: string | null;
+  programVersion?: number | null;
+  programStatus?: string | null;
+  updateAvailable?: boolean;
   days: Record<string, boolean>;
 }
 

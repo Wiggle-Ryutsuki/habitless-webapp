@@ -27,6 +27,17 @@ enum ProgramStatus {
   ARCHIVED
 }
 
+enum ChallengeHabitStatus {
+  ACTIVE
+  ENDED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  LEFT
+  COMPLETED
+}
+
 model User {
   id              Int                 @id @default(autoincrement())
   email           String              @unique
@@ -41,34 +52,41 @@ model User {
   dailyNotes      DailyNote[]
   enrollments     ProgramEnrollment[]
   managedPrograms ChallengeProgram[]  @relation("ManagerPrograms")
+  ratings         ChallengeRating[]
+  comments        ChallengeComment[]
 
   @@map("users")
 }
 
 model Habit {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  category    String?       @db.VarChar(50)
-  colorHex    String        @default("#448aff")
-  frequency   FrequencyType @default(DAILY)
-  daysOfWeek  Int[]         @default([1, 2, 3, 4, 5, 6, 7]) // ISO-8601: 1=Mon .. 7=Sun
-  startDate   DateTime      @default(now())
-  endDate     DateTime?
-  targetCount Int           @default(20)
-  isActive    Boolean       @default(true)
-  programId   Int?          // Link to challenge program
-  program     ChallengeProgram? @relation(fields: [programId], references: [id], onDelete: SetNull)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id               Int                  @id @default(autoincrement())
+  userId           Int
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  category         String?              @db.VarChar(50)
+  colorHex         String               @default("#448aff")
+  frequency        FrequencyType        @default(DAILY)
+  daysOfWeek       Int[]                @default([1, 2, 3, 4, 5, 6, 7]) // ISO-8601: 1=Mon .. 7=Sun
+  startDate        DateTime             @default(now())
+  endDate          DateTime?
+  targetCount      Int                  @default(20)
+  isActive         Boolean              @default(true)
+  programId        Int?                 // Link to challenge program
+  program          ChallengeProgram?    @relation(fields: [programId], references: [id], onDelete: SetNull)
+  sourceActivityId Int?
+  sourceActivity   ProgramActivity?     @relation(fields: [sourceActivityId], references: [id], onDelete: SetNull)
+  challengeStatus  ChallengeHabitStatus?
+  syncedVersion    Int?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
   logs        HabitLog[]
   notes       DailyNote[]
 
   @@index([userId, isActive])
   @@index([programId])
+  @@index([sourceActivityId])
   @@map("habits")
 }
 
@@ -103,22 +121,26 @@ model DailyNote {
 }
 
 model ChallengeProgram {
-  id                  Int                 @id @default(autoincrement())
-  managerId           Int
-  manager             User                @relation("ManagerPrograms", fields: [managerId], references: [id], onDelete: Restrict)
-  title               String
-  description         String?
-  category            String              // e.g. "Wellness", "Fitness", "Mindfulness"
-  startDate           DateTime
-  endDate             DateTime
-  status              ProgramStatus       @default(DRAFT)
-  previouslyPublished Boolean             @default(false)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  id                            Int                 @id @default(autoincrement())
+  managerId                     Int
+  manager                       User                @relation("ManagerPrograms", fields: [managerId], references: [id], onDelete: Restrict)
+  title                         String
+  description                   String?
+  category                      String              // e.g. "Wellness", "Fitness", "Mindfulness"
+  startDate                     DateTime
+  endDate                       DateTime
+  status                        ProgramStatus       @default(DRAFT)
+  previouslyPublished           Boolean             @default(false)
+  version                       Int                 @default(1)
+  hasTemplateEditsSincePublish Boolean             @default(false)
+  createdAt                     DateTime            @default(now())
+  updatedAt                     DateTime            @updatedAt
 
   habits      Habit[]
   activities  ProgramActivity[]
   enrollments ProgramEnrollment[]
+  ratings     ChallengeRating[]
+  comments    ChallengeComment[]
 
   @@index([managerId])
   @@index([status])
@@ -137,6 +159,8 @@ model ProgramActivity {
   targetCount Int              @default(1)
   createdAt   DateTime         @default(now())
 
+  clonedHabits Habit[]
+
   @@index([programId])
   @@map("program_activities")
 }
@@ -147,11 +171,46 @@ model ProgramEnrollment {
   program       ChallengeProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
   participantId Int
   participant   User             @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status        EnrollmentStatus @default(ACTIVE)
   enrolledAt    DateTime         @default(now())
+  leftAt        DateTime?
   isActive      Boolean          @default(true)
 
   @@unique([programId, participantId])
   @@index([programId])
   @@index([participantId])
   @@map("program_enrollments")
+}
+
+model ChallengeRating {
+  id        Int              @id @default(autoincrement())
+  programId Int
+  program   ChallengeProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([programId, userId])
+  @@index([programId])
+  @@map("challenge_ratings")
+}
+
+model ChallengeComment {
+  id              Int                @id @default(autoincrement())
+  programId       Int
+  program         ChallengeProgram   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  userId          Int
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentCommentId Int?
+  parentComment   ChallengeComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         ChallengeComment[] @relation("CommentReplies")
+  content         String             @db.VarChar(500)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([programId, createdAt])
+  @@index([parentCommentId])
+  @@map("challenge_comments")
 }

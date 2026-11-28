@@ -9,6 +9,7 @@ import { HabitsDirectoryPage } from './pages/HabitsDirectoryPage.js';
 import { HabitStatsPage } from './pages/HabitStatsPage.js';
 import { ManagerPage } from './pages/ManagerPage.js';
 import { ChallengeInvitationPage } from './pages/ChallengeInvitationPage.js';
+import { ChallengesHubPage } from './pages/ChallengesHubPage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
 
 export const App: React.FC = () => {
@@ -52,6 +53,15 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute allowedRoles={['PARTICIPANT']}>
                 <HabitStatsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/challenges"
+            element={
+              <ProtectedRoute allowedRoles={['PARTICIPANT']}>
+                <ChallengesHubPage />
               </ProtectedRoute>
             }
           />

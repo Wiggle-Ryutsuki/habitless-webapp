@@ -8,6 +8,7 @@ import {
 } from '../components/DayOfWeekSelector.js';
 import { fetchHabits } from '../services/habits.service.js';
 import { Habit } from '../types/habit.js';
+import { ChallengeInfoModal } from '../components/ChallengeInfoModal.js';
 
 const outlinedButtonStyle: React.CSSProperties = {
   backgroundColor: 'var(--color-surface)',
@@ -40,6 +41,15 @@ export const HabitsDirectoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false);
+  const [selectedChallengeProgramId, setSelectedChallengeProgramId] = useState<number | null>(null);
+  const [selectedChallengeStatus, setSelectedChallengeStatus] = useState<'ACTIVE' | 'ENDED' | null>(null);
+
+  const handleOpenChallengeModal = (programId: number, status?: 'ACTIVE' | 'ENDED' | null) => {
+    setSelectedChallengeProgramId(programId);
+    setSelectedChallengeStatus(status || null);
+    setChallengeModalOpen(true);
+  };
 
   const loadHabits = async () => {
     setIsLoading(true);
@@ -417,6 +427,25 @@ export const HabitsDirectoryPage: React.FC = () => {
                     >
                       {formatFrequencySummary(habit)}
                     </span>
+                    {habit.programId && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenChallengeModal(habit.programId!, habit.challengeStatus)}
+                        aria-label={habit.challengeStatus === 'ENDED' ? 'View ended challenge details' : 'View challenge details'}
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          backgroundColor: habit.challengeStatus === 'ENDED' ? '#ffebee' : '#fff8e1',
+                          color: habit.challengeStatus === 'ENDED' ? '#c62828' : '#b78103',
+                          border: `1px solid ${habit.challengeStatus === 'ENDED' ? '#ef9a9a' : '#ffe082'}`,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {habit.challengeStatus === 'ENDED' ? 'Challenge (Ended)' : 'Challenge'}
+                      </button>
+                    )}
                     <Link
                       to={`/habits/${habit.id}/stats`}
                       style={outlinedButtonStyle}
@@ -430,6 +459,14 @@ export const HabitsDirectoryPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      <ChallengeInfoModal
+        isOpen={challengeModalOpen}
+        programId={selectedChallengeProgramId}
+        initialChallengeStatus={selectedChallengeStatus}
+        onClose={() => setChallengeModalOpen(false)}
+        onEnrollmentChanged={loadHabits}
+      />
     </div>
   );
 };
