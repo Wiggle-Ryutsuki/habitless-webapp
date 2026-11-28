@@ -32,7 +32,7 @@ export const ManagerDashboardPage: React.FC = () => {
     <div data-testid="manager-dashboard" style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
       <Header />
 
-      <main style={{ maxWidth: '100%', margin: '0 auto', padding: '2rem 2rem', boxSizing: 'border-box' }}>
+      <main style={{ maxWidth: '1520px', margin: '0 auto', padding: '2rem 1.5rem', boxSizing: 'border-box' }}>
         {/* Page Title */}
         <div style={{ marginBottom: '2rem' }}>
           <h1
@@ -159,12 +159,12 @@ export const ManagerDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 2-Column Layout: Popular Challenges (Wide Left) & Category Breakdown (Sidebar Right) */}
+            {/* 2-Column Layout: Popular Challenges (Left) & Category Breakdown (Sidebar Right) */}
             <div
               className="manager-dashboard-columns"
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1fr) 340px',
+                gridTemplateColumns: 'minmax(0, 1fr) 360px',
                 gap: '1.5rem',
                 alignItems: 'start',
               }}
@@ -219,16 +219,16 @@ export const ManagerDashboardPage: React.FC = () => {
                             transition: 'background-color 0.15s ease',
                           }}
                         >
-                          <td style={{ padding: '12px 10px 12px 14px', fontWeight: 700, color: 'var(--walnut)' }}>
+                          <td style={{ padding: '10px 10px 10px 14px', fontWeight: 700, color: 'var(--walnut)' }}>
                             #{idx + 1}
                           </td>
-                          <td style={{ padding: '12px 12px' }}>
+                          <td style={{ padding: '10px 12px' }}>
                             <div style={{ fontWeight: 600, color: 'var(--walnut)', fontSize: '0.9375rem' }}>{item.title}</div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                               {item.durationDays} Days Duration
                             </div>
                           </td>
-                          <td style={{ padding: '12px 12px', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
                             <span
                               style={{
                                 display: 'inline-block',
@@ -243,13 +243,13 @@ export const ManagerDashboardPage: React.FC = () => {
                               {item.category}
                             </span>
                           </td>
-                          <td style={{ padding: '12px 12px', fontSize: '0.875rem', color: 'var(--color-text-main)', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 12px', fontSize: '0.875rem', color: 'var(--color-text-main)', whiteSpace: 'nowrap' }}>
                             {item.managerName}
                           </td>
-                          <td style={{ padding: '12px 12px', fontWeight: 700, color: 'var(--walnut)', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--walnut)', whiteSpace: 'nowrap' }}>
                             {item.enrollmentCount}
                           </td>
-                          <td style={{ padding: '12px 12px', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span style={{ color: '#f59e0b', fontSize: '1rem' }}>★</span>
                               <span style={{ fontWeight: 700, fontSize: '0.875rem' }}>
@@ -257,7 +257,7 @@ export const ManagerDashboardPage: React.FC = () => {
                               </span>
                             </div>
                           </td>
-                          <td style={{ padding: '12px 14px 12px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '10px 14px 10px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                             <button
                               type="button"
                               onClick={() => navigate(`/manager/challenges/${item.id}`)}
