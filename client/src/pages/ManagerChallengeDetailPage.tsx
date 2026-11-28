@@ -346,109 +346,140 @@ export const ManagerChallengeDetailPage: React.FC = () => {
               </div>
 
               {/* Comments & Discussion Section */}
-              <div style={{ padding: '1.5rem 2rem 2rem 2rem' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: '0 0 1rem 0' }}>
-                  Participant Discussions & Comments ({challenge.comments.length})
-                </h2>
-
-              {challenge.comments.length === 0 ? (
-                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                  No participant comments posted yet.
+              <div
+                style={{
+                  padding: '2rem',
+                  backgroundColor: '#fbf7f0',
+                  borderTop: '2px solid var(--papaya-whip)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--walnut)', margin: 0 }}>
+                    Participant Discussions & Comments ({challenge.comments.length})
+                  </h2>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-muted)',
+                      backgroundColor: 'rgba(114, 67, 25, 0.08)',
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Community Feedback
+                  </span>
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {challenge.comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      style={{
-                        padding: '1rem',
-                        backgroundColor: '#fffdfa',
-                        borderRadius: '8px',
-                        border: '1px solid var(--papaya-whip)',
-                      }}
-                    >
-                      {/* Comment Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 700, color: 'var(--walnut)', fontSize: '0.9375rem' }}>
-                            {comment.author.fullName}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.6875rem',
-                              fontWeight: 600,
-                              padding: '2px 6px',
-                              borderRadius: '6px',
-                              backgroundColor: comment.author.role === 'PROGRAM_MANAGER' ? 'var(--golden-sand)' : 'var(--papaya-whip)',
-                              color: 'var(--walnut)',
-                            }}
-                          >
-                            {comment.author.role === 'PROGRAM_MANAGER' ? 'Manager' : 'Participant'}
-                          </span>
-                        </div>
 
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {/* Comment Content */}
-                      <p style={{ margin: '0 0 0.75rem 0', color: 'var(--color-text-main)', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                        {comment.content}
-                      </p>
-
-                      {/* Nested Replies */}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <div
-                          style={{
-                            marginLeft: '1.5rem',
-                            marginTop: '0.75rem',
-                            paddingLeft: '1rem',
-                            borderLeft: '2px solid var(--papaya-whip)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.75rem',
-                          }}
-                        >
-                          {comment.replies.map((reply) => (
-                            <div
-                              key={reply.id}
+                {challenge.comments.length === 0 ? (
+                  <div
+                    style={{
+                      padding: '2.5rem 1.5rem',
+                      textAlign: 'center',
+                      color: 'var(--color-text-muted)',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '10px',
+                      border: '1px dashed #ebdcc5',
+                    }}
+                  >
+                    <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>💬</div>
+                    No participant comments posted yet.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {challenge.comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        style={{
+                          padding: '1.25rem',
+                          backgroundColor: '#ffffff',
+                          borderRadius: '10px',
+                          border: '1px solid #ebdcc5',
+                          boxShadow: '0 2px 8px rgba(114, 67, 25, 0.04)',
+                        }}
+                      >
+                        {/* Comment Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--walnut)', fontSize: '0.9375rem' }}>
+                              {comment.author.fullName}
+                            </span>
+                            <span
                               style={{
-                                backgroundColor: '#ffffff',
-                                padding: '0.75rem 1rem',
+                                fontSize: '0.6875rem',
+                                fontWeight: 600,
+                                padding: '2px 6px',
                                 borderRadius: '6px',
-                                border: '1px solid #f0e6d6',
+                                backgroundColor: comment.author.role === 'PROGRAM_MANAGER' ? 'var(--golden-sand)' : 'var(--papaya-whip)',
+                                color: 'var(--walnut)',
                               }}
                             >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <strong style={{ fontSize: '0.8125rem', color: 'var(--walnut)' }}>
-                                    {reply.author.fullName}
-                                  </strong>
-                                  <span
-                                    style={{
-                                      fontSize: '0.625rem',
-                                      fontWeight: 700,
-                                      padding: '1px 5px',
-                                      borderRadius: '4px',
-                                      backgroundColor: 'var(--golden-sand)',
-                                      color: 'var(--walnut)',
-                                    }}
-                                  >
-                                    Manager Reply
+                              {comment.author.role === 'PROGRAM_MANAGER' ? 'Manager' : 'Participant'}
+                            </span>
+                          </div>
+
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        {/* Comment Content */}
+                        <p style={{ margin: '0 0 0.75rem 0', color: 'var(--color-text-main)', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                          {comment.content}
+                        </p>
+
+                        {/* Nested Replies */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div
+                            style={{
+                              marginLeft: '1.5rem',
+                              marginTop: '0.75rem',
+                              paddingLeft: '1rem',
+                              borderLeft: '3px solid var(--golden-sand)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.75rem',
+                            }}
+                          >
+                            {comment.replies.map((reply) => (
+                              <div
+                                key={reply.id}
+                                style={{
+                                  backgroundColor: '#fbf7f0',
+                                  padding: '0.875rem 1rem',
+                                  borderRadius: '8px',
+                                  border: '1px solid #eedec8',
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <strong style={{ fontSize: '0.8125rem', color: 'var(--walnut)' }}>
+                                      {reply.author.fullName}
+                                    </strong>
+                                    <span
+                                      style={{
+                                        fontSize: '0.625rem',
+                                        fontWeight: 700,
+                                        padding: '1px 5px',
+                                        borderRadius: '4px',
+                                        backgroundColor: 'var(--golden-sand)',
+                                        color: 'var(--walnut)',
+                                      }}
+                                    >
+                                      Manager Reply
+                                    </span>
+                                  </div>
+                                  <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
+                                    {new Date(reply.createdAt).toLocaleDateString()}
                                   </span>
                                 </div>
-                                <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
-                                  {new Date(reply.createdAt).toLocaleDateString()}
-                                </span>
+                                <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-main)', lineHeight: 1.4 }}>
+                                  {reply.content}
+                                </p>
                               </div>
-                              <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-main)', lineHeight: 1.4 }}>
-                                {reply.content}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        )}
 
                       {/* Reply Button & Inline Form */}
                       <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
