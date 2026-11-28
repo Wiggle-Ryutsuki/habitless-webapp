@@ -16,6 +16,25 @@ export const ManagerChallengeDetailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const fromDashboard = location.state?.from === 'dashboard' || searchParams.get('from') === 'dashboard';
+  const fromPrograms = location.state?.from === 'programs' || searchParams.get('from') === 'programs';
+
+  const backDestination = fromDashboard
+    ? '/manager/dashboard'
+    : fromPrograms
+    ? '/manager'
+    : '/manager/challenges';
+
+  const backLabel = fromDashboard
+    ? 'Back to Dashboard'
+    : fromPrograms
+    ? 'Back to Challenge Programs'
+    : 'Back to Directory';
+
+  const backTestId = fromDashboard
+    ? 'back-to-dashboard-btn'
+    : fromPrograms
+    ? 'back-to-programs-btn'
+    : 'back-to-directory-btn';
 
   const [challenge, setChallenge] = useState<ManagerDirectoryDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -112,8 +131,8 @@ export const ManagerChallengeDetailPage: React.FC = () => {
         <div style={{ marginBottom: '1.5rem' }}>
           <button
             type="button"
-            data-testid={fromDashboard ? 'back-to-dashboard-btn' : 'back-to-directory-btn'}
-            onClick={() => navigate(fromDashboard ? '/manager/dashboard' : '/manager/challenges')}
+            data-testid={backTestId}
+            onClick={() => navigate(backDestination)}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#ffffff';
               e.currentTarget.style.borderColor = 'var(--walnut)';
@@ -154,7 +173,7 @@ export const ManagerChallengeDetailPage: React.FC = () => {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            <span>{fromDashboard ? 'Back to Dashboard' : 'Back to Directory'}</span>
+            <span>{backLabel}</span>
           </button>
         </div>
 

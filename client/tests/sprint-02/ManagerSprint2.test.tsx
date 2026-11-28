@@ -324,10 +324,35 @@ describe('Sprint 2 Feature 9: Manager Analytics & Directory', () => {
         expect(screen.getByText('Manager Dashboard Page')).toBeInTheDocument();
       });
     });
+
+    it('renders Back to Challenge Programs button when arriving with from=programs', async () => {
+      vi.spyOn(ManagerService, 'fetchManagerDirectoryDetail').mockResolvedValue(sampleDetail);
+
+      render(
+        <MemoryRouter initialEntries={['/manager/challenges/101?from=programs']}>
+          <Routes>
+            <Route path="/manager/challenges/:id" element={<ManagerChallengeDetailPage />} />
+            <Route path="/manager" element={<div>Challenge Programs Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Morning Yoga Challenge')).toBeInTheDocument();
+      });
+
+      const backBtn = screen.getByTestId('back-to-programs-btn');
+      expect(backBtn).toHaveTextContent('Back to Challenge Programs');
+      fireEvent.click(backBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Challenge Programs Page')).toBeInTheDocument();
+      });
+    });
   });
 
-  describe('ProgramBuilder In-Place Preview (UI-S2-09, FR-S2-17)', () => {
-    it('supports Edit | Preview segmented tabs in modal and row Preview button', async () => {
+  describe('ProgramBuilder Challenge Actions & In-Place Preview (UI-S2-09, FR-S2-17)', () => {
+    it('supports row View button to view challenge details and Edit | Preview segmented tabs in modal', async () => {
       const sampleProgram: ChallengeProgram = {
         id: 201,
         title: '30-Day Fitness',
@@ -351,8 +376,11 @@ describe('Sprint 2 Feature 9: Manager Analytics & Directory', () => {
       vi.spyOn(ManagerService, 'fetchManagerPrograms').mockResolvedValue([sampleProgram]);
 
       render(
-        <MemoryRouter>
-          <ProgramBuilder />
+        <MemoryRouter initialEntries={['/manager']}>
+          <Routes>
+            <Route path="/manager" element={<ProgramBuilder />} />
+            <Route path="/manager/challenges/:id" element={<div>Manager Challenge Detail Page 201</div>} />
+          </Routes>
         </MemoryRouter>
       );
 
@@ -360,20 +388,26 @@ describe('Sprint 2 Feature 9: Manager Analytics & Directory', () => {
         expect(screen.getByText('30-Day Fitness')).toBeInTheDocument();
       });
 
-      // Row Preview button
-      const previewBtn = screen.getByRole('button', { name: 'Preview' });
-      expect(previewBtn).toBeInTheDocument();
-      fireEvent.click(previewBtn);
+      // Row Preview button is removed and replaced with View button
+      expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
+      const viewBtn = screen.getByRole('button', { name: 'View' });
+      expect(viewBtn).toBeInTheDocument();
+      fireEvent.click(viewBtn);
 
-      // Verify row preview modal opened
+      // Verify row View button navigated to challenge details page
       await waitFor(() => {
-        expect(screen.getByText('Challenge Layout Preview')).toBeInTheDocument();
-        expect(screen.getByTestId('preview-mode-banner')).toBeInTheDocument();
-        expect(screen.getByTestId('preview-mode-join-disabled')).toBeInTheDocument();
+        expect(screen.getByText('Manager Challenge Detail Page 201')).toBeInTheDocument();
       });
+    });
 
-      // Close preview modal
-      fireEvent.click(screen.getByRole('button', { name: 'Close Preview' }));
+    it('supports Edit | Preview segmented tabs in create modal', async () => {
+      vi.spyOn(ManagerService, 'fetchManagerPrograms').mockResolvedValue([]);
+
+      render(
+        <MemoryRouter>
+          <ProgramBuilder />
+        </MemoryRouter>
+      );
 
       // Open Create modal
       fireEvent.click(screen.getByText('+ Create Challenge'));

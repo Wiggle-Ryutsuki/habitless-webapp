@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { NewHabitModal } from '../../src/components/NewHabitModal.js';
 import { EditHabitModal, HabitToEdit } from '../../src/components/EditHabitModal.js';
 import { ProgramBuilder } from '../../src/components/ProgramBuilder.js';
@@ -162,7 +163,11 @@ describe('Feature 5 Category Selection & Preserved 8-Color Palette (UI-S2-02)', 
       },
     ]);
 
-    render(<ProgramBuilder />);
+    render(
+      <MemoryRouter>
+        <ProgramBuilder />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Legacy Wellness Draft')).toBeInTheDocument();

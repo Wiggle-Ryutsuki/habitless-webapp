@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { ProgramBuilder } from '../../src/components/ProgramBuilder.js';
 import * as ManagerService from '../../src/services/manager.service.js';
 import { ChallengeProgram } from '../../src/types/challenge.types.js';
@@ -48,7 +49,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('renders managed programs list and challenge builder form with required inputs', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('30-Day Wellness Challenge')).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('dynamically adds and removes activity rows with minimum 1 activity constraint', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -101,7 +102,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('validates date range when end date is before start date', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -134,7 +135,7 @@ describe('Program Builder Component (UI-07)', () => {
       activitiesCount: 1,
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -168,7 +169,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('prompts confirmation when clicking Cancel in challenge creator and allows discarding', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -219,7 +220,7 @@ describe('Program Builder Component (UI-07)', () => {
       inviteUrl: '/challenges/5',
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -258,7 +259,7 @@ describe('Program Builder Component (UI-07)', () => {
       activitiesCount: 1,
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();
@@ -306,7 +307,7 @@ describe('Program Builder Component (UI-07)', () => {
       inviteUrl: '/challenges/2',
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Mindful Breathing Draft')).toBeInTheDocument();
@@ -333,7 +334,7 @@ describe('Program Builder Component (UI-07)', () => {
       id: 2,
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Mindful Breathing Draft')).toBeInTheDocument();
@@ -357,7 +358,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('copies public invite link to clipboard when clicking Copy Link on published program', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Copy Link')).toBeInTheDocument();
@@ -387,7 +388,7 @@ describe('Program Builder Component (UI-07)', () => {
       inviteUrl: null,
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('30-Day Wellness Challenge')).toBeInTheDocument();
@@ -428,7 +429,7 @@ describe('Program Builder Component (UI-07)', () => {
       previouslyPublished: true,
     });
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('30-Day Wellness Challenge')).toBeInTheDocument();
@@ -472,7 +473,7 @@ describe('Program Builder Component (UI-07)', () => {
     ];
     vi.spyOn(ManagerService, 'fetchManagerPrograms').mockResolvedValue(unpublishedDrafts);
 
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Unpublished Meditation Course')).toBeInTheDocument();
@@ -493,7 +494,7 @@ describe('Program Builder Component (UI-07)', () => {
   });
 
   it('renders per-activity Description and Target Count inputs for curriculum activities (DEF-HL-02)', async () => {
-    render(<ProgramBuilder />);
+    render(<MemoryRouter><ProgramBuilder /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Challenge Programs')).toBeInTheDocument();

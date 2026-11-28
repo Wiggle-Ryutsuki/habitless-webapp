@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useInRouterContext } from 'react-router-dom';
 import {
   ChallengeProgram,
   CreateProgramPayload,
@@ -50,7 +51,20 @@ interface ConfirmDialogState {
   onCancel?: () => void;
 }
 
+function useSafeNavigate() {
+  const inRouter = useInRouterContext();
+  if (inRouter) {
+    return useNavigate();
+  }
+  return (to: any, options?: any) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState(options?.state || {}, '', to);
+    }
+  };
+}
+
 export const ProgramBuilder: React.FC = () => {
+  const navigate = useSafeNavigate();
   const auth = React.useContext(AuthContext);
   const user = auth?.user;
   const [programs, setPrograms] = useState<ChallengeProgram[]>([]);
@@ -67,8 +81,6 @@ export const ProgramBuilder: React.FC = () => {
   // Modal Dialog State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTab, setModalTab] = useState<'EDIT' | 'PREVIEW'>('EDIT');
-  const [rowPreviewProgram, setRowPreviewProgram] = useState<ChallengeProgram | null>(null);
-  const [rowPreviewLoading, setRowPreviewLoading] = useState<boolean>(false);
   const [editingProgramId, setEditingProgramId] = useState<number | null>(null);
   const [isPreviouslyPublished, setIsPreviouslyPublished] = useState<boolean>(false);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
@@ -201,22 +213,6 @@ export const ProgramBuilder: React.FC = () => {
     setIsPreviouslyPublished(false);
     setFieldErrors({});
     setModalTab('EDIT');
-  };
-
-  const handleRowPreview = async (prog: ChallengeProgram) => {
-    try {
-      setRowPreviewLoading(true);
-      if (!prog.activities || prog.activities.length === 0) {
-        const full = await fetchManagerProgram(prog.id);
-        setRowPreviewProgram(full);
-      } else {
-        setRowPreviewProgram(prog);
-      }
-    } catch {
-      setRowPreviewProgram(prog);
-    } finally {
-      setRowPreviewLoading(false);
-    }
   };
 
   const handleAddActivity = () => {
@@ -811,19 +807,27 @@ export const ProgramBuilder: React.FC = () => {
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
                           <button
                             type="button"
-                            onClick={() => handleRowPreview(prog)}
+                            data-testid={`view-program-btn-${prog.id}`}
+                            onClick={() => navigate(`/manager/challenges/${prog.id}?from=programs`, { state: { from: 'programs' } })}
                             style={{
                               backgroundColor: 'transparent',
                               border: '1px solid var(--walnut)',
                               color: 'var(--walnut)',
-                              padding: '5px 10px',
+                              padding: '5px 12px',
                               borderRadius: '6px',
                               fontWeight: 600,
                               fontSize: '0.75rem',
                               cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--papaya-whip)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                           >
-                            Preview
+                            View
                           </button>
                           {isDraft && (
                             <>
@@ -1605,117 +1609,6 @@ export const ProgramBuilder: React.FC = () => {
             </form>
             </>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Row Preview Modal */}
-      {rowPreviewProgram && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Challenge Preview"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(45, 28, 11, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px',
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setRowPreviewProgram(null);
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '14px',
-              width: '100%',
-              maxWidth: '760px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 12px 36px rgba(114, 67, 25, 0.25)',
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--walnut)', fontWeight: 700, margin: 0 }}>
-                Challenge Layout Preview
-              </h2>
-              <button
-                type="button"
-                onClick={() => setRowPreviewProgram(null)}
-                aria-label="Close preview"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.25rem',
-                  color: 'var(--walnut)',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  lineHeight: 1,
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <ChallengeInvitationCard
-              challenge={{
-                id: rowPreviewProgram.id,
-                title: rowPreviewProgram.title,
-                description: rowPreviewProgram.description,
-                category: rowPreviewProgram.category,
-                durationDays: rowPreviewProgram.durationDays,
-                startDate: rowPreviewProgram.startDate,
-                endDate: rowPreviewProgram.endDate,
-                status: rowPreviewProgram.status,
-                version: rowPreviewProgram.version || 1,
-                manager: {
-                  fullName: user?.fullName || 'Program Manager',
-                },
-                activitiesCount: rowPreviewProgram.activities?.length || rowPreviewProgram.activitiesCount || 0,
-                enrollmentsCount: rowPreviewProgram.enrollmentsCount || 0,
-                averageRating: 0,
-                ratingsCount: 0,
-                myEnrollment: null,
-                activities: (rowPreviewProgram.activities || []).map((a, idx) => ({
-                  id: a.id || idx + 1,
-                  title: a.title,
-                  description: a.description || null,
-                  frequency: a.frequency,
-                  daysOfWeek: a.daysOfWeek,
-                  targetCount: a.targetCount || 1,
-                })),
-                comments: [],
-              }}
-              previewMode={true}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={() => setRowPreviewProgram(null)}
-                style={{
-                  backgroundColor: 'var(--walnut)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 18px',
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Close Preview
-              </button>
-            </div>
           </div>
         </div>
       )}
