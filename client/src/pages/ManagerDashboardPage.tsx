@@ -32,7 +32,7 @@ export const ManagerDashboardPage: React.FC = () => {
     <div data-testid="manager-dashboard" style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
       <Header />
 
-      <main style={{ maxWidth: '1120px', margin: '0 auto', padding: '2rem 1rem' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
         {/* Page Title */}
         <div style={{ marginBottom: '2rem' }}>
           <h1
@@ -159,9 +159,19 @@ export const ManagerDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Most Popular Challenges Section */}
+            {/* 2-Column Layout: Popular Challenges (Left) & Category Breakdown (Right) */}
             <div
-              data-testid="popular-challenges-section"
+              className="manager-dashboard-columns"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
+                gap: '1.5rem',
+                alignItems: 'start',
+              }}
+            >
+              {/* Most Popular Challenges Section */}
+              <div
+                data-testid="popular-challenges-section"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 borderRadius: '12px',
@@ -425,9 +435,19 @@ export const ManagerDashboardPage: React.FC = () => {
                 </div>
               )}
             </div>
+            </div>
           </div>
         ) : null}
       </main>
+
+      {/* Responsive layout styles */}
+      <style>{`
+        @media (max-width: 960px) {
+          .manager-dashboard-columns {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
