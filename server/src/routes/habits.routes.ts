@@ -7,6 +7,7 @@ import {
   getHabitById,
   updateHabit,
   archiveHabit,
+  getHabitStats,
 } from '../controllers/habits.controller.js';
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use(requireRole([Role.PARTICIPANT], 'PARTICIPANT_ROLE_REQUIRED'));
 
 router.get('/', getHabits);
 router.post('/', createHabit);
+router.get('/:id/stats', getHabitStats);
 router.get('/:id', getHabitById);
 router.put('/:id', updateHabit);
 router.delete('/:id', archiveHabit);

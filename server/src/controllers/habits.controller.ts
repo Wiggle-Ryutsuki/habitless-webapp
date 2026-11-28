@@ -4,6 +4,8 @@ import { prisma } from '../db/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { isValidHabitColor, normalizeHabitColor } from '../utils/palette-validator.js';
 import { isValidDateRange } from '../utils/schedule-validator.js';
+import { isValidIsoDateString, toUtcMidnight } from '../utils/dashboard-calc.js';
+import { computeHabitStats } from '../utils/habit-stats.js';
 
 const VALID_FREQUENCIES: FrequencyType[] = [
   'DAILY',
@@ -356,6 +358,89 @@ export async function archiveHabit(req: Request, res: Response, next: NextFuncti
     });
 
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getHabitStats(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user!.id;
+    const rawId = req.params.id;
+
+    if (!/^\d+$/.test(rawId)) {
+      throw new AppError(404, 'HABIT_NOT_FOUND', 'Habit not found.');
+    }
+    const habitId = parseInt(rawId, 10);
+
+    const modeParam = req.query.mode;
+    let mode: 'month' | 'year' = 'month';
+    if (modeParam !== undefined) {
+      if (modeParam !== 'month' && modeParam !== 'year') {
+        throw new AppError(422, 'INVALID_STATS_MODE', "Mode must be either 'month' or 'year'.");
+      }
+      mode = modeParam;
+    }
+
+    const dateQuery = req.query.date;
+    let anchorTodayStr: string;
+    if (dateQuery !== undefined) {
+      if (typeof dateQuery !== 'string' || !isValidIsoDateString(dateQuery)) {
+        throw new AppError(422, 'INVALID_DATE_FORMAT', 'Date must be formatted as YYYY-MM-DD.');
+      }
+      anchorTodayStr = dateQuery;
+    } else {
+      anchorTodayStr = new Date().toISOString().split('T')[0];
+    }
+
+    const anchorToday = toUtcMidnight(anchorTodayStr);
+
+    const yearParam = req.query.year;
+    let year = anchorToday.getUTCFullYear();
+    if (yearParam !== undefined) {
+      if (typeof yearParam !== 'string' || !/^\d+$/.test(yearParam)) {
+        throw new AppError(422, 'INVALID_YEAR', 'Year must be a valid 4-digit integer between 1900 and 2100.');
+      }
+      year = parseInt(yearParam, 10);
+      if (year < 1900 || year > 2100) {
+        throw new AppError(422, 'INVALID_YEAR', 'Year must be a valid 4-digit integer between 1900 and 2100.');
+      }
+    }
+
+    const monthParam = req.query.month;
+    let month = anchorToday.getUTCMonth() + 1;
+    if (monthParam !== undefined) {
+      if (typeof monthParam !== 'string' || !/^\d+$/.test(monthParam)) {
+        throw new AppError(422, 'INVALID_MONTH', 'Month must be an integer between 1 and 12.');
+      }
+      month = parseInt(monthParam, 10);
+      if (month < 1 || month > 12) {
+        throw new AppError(422, 'INVALID_MONTH', 'Month must be an integer between 1 and 12.');
+      }
+    }
+
+    const habit = await prisma.habit.findFirst({
+      where: {
+        id: habitId,
+      },
+    });
+
+    if (!habit || habit.userId !== userId || !habit.isActive) {
+      throw new AppError(404, 'HABIT_NOT_FOUND', 'Habit not found.');
+    }
+
+    const logs = await prisma.habitLog.findMany({
+      where: {
+        habitId: habit.id,
+        completed: true,
+      },
+      select: {
+        logDate: true,
+        completed: true,
+      },
+    });
+
+    res.status(200).json(computeHabitStats(habit, logs, { mode, month, year, anchorTodayStr }));
   } catch (error) {
     next(error);
   }

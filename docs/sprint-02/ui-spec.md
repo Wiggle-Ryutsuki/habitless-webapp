@@ -79,15 +79,15 @@ Remove the Sprint 1 `"Dashboard is still under construction"` click toast (`Dash
 
 ### `UI-S2-04`: All Habits Directory (`/habits`) & Individual Habit Statistics (`/habits/:id/stats`)
 * **`/habits` (`HabitsDirectoryPage.tsx`, `FR-S2-07`)**:
-  * Filterable/searchable list of all active participant habits displaying color swatch, title, category badge, frequency, and optional `"Challenge"` / `"Challenge (Ended)"` tag.
-  * Clicking any habit card navigates to `/habits/:id/stats`.
+  * Filterable/searchable vertical list of all active participant habits displaying color swatch, title, category badge, frequency, `"View Stats"` button, and optional `"Challenge"` / `"Challenge (Ended)"` tag.
+  * Clicking any habit row navigates to `/habits/:id/stats`.
 * **`/habits/:id/stats` (`HabitStatsPage.tsx`, `FR-S2-08`, `FR-S2-09`)**:
   * **Header**: Back button to `/habits`, habit title, category badge, frequency, and color chip.
   * **Streak Counters**: Two metric cards — **Current Streak** (`X days`) and **Highest Streak** (`Y days`).
   * **Completion Heatmap**:
     * Toggle control: `[ Month ]` | `[ Year ]` + month/year navigation arrows.
-    * **Month Mode**: Calendar grid for the selected month where unlogged days render at `0%` fill opacity (subtle border) and completed days render at `100%` opacity in the habit's assigned Sprint 1 palette `colorHex` with `aria-label` describing date and status.
-    * **Year Mode**: 12-month or 52-week grid shaded in the habit's assigned Sprint 1 palette `colorHex` using 5 opacity levels (`0`, `0.25`, `0.5`, `0.75`, `1.0`) with an opacity legend (`0%` to `100%`).
+    * **Month Mode**: Compact 7-column daily square matrix for the selected month sharing the square-tile aesthetic, where unlogged/future days render as subtle neutral empty squares (`#efe6da` / `0` opacity fill) and completed days render at `1.0` opacity in the habit's assigned Sprint 1 palette `colorHex` with `title` and `aria-label` tooltips (`"YYYY-MM-DD: Completed"` or `"YYYY-MM-DD: Not completed"`).
+    * **Year Mode**: GitHub / AniList-style 7-row (`Mon`–`Sun`, subtle `Mon`, `Wed`, `Fri` row labels on the left) × 53-column daily contribution grid covering all 365/366 days (`Jan 1`–`Dec 31`), with leading spacer cells before `Jan 1` for weekday alignment, `Jan`–`Dec` month labels positioned across the top aligned with each month's first week column, crisp small rounded squares (`12px–14px` with `3px–4px` gap and `2px–3px` border-radius, scrollable horizontally on narrow viewports so squares never squish), neutral empty fill (`#efe6da`) for unlogged/future days (`opacity: 0`), `habit.colorHex` (`opacity: 1.0`) for completed days, hover/focus `title` + `aria-label` tooltips (`"YYYY-MM-DD: Completed"` / `"YYYY-MM-DD: Not completed"`), and a compact legend (`Not completed` / `Completed`).
 
 ### `UI-S2-05`: Interactive Challenges Hub (`/challenges`, `ChallengesHubPage.tsx`) & Challenge Badges
 * **Discovery Bar (`FR-S2-10`)**: Search input (title/description), Category dropdown, and Enrollment Status filter (`All`, `Available`, `Enrolled`, `Ended`).

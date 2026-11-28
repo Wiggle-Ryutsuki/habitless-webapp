@@ -217,7 +217,20 @@ All Sprint 1 conventions remain active (`api-spec.md`, Sec. 1–2):
     }
   }
   ```
-* **Year Heatmap Semantics (`mode=year`)**: Returns 12 calendar-month buckets or 53 ISO-week buckets (explicitly keyed as `YYYY-MM` or `YYYY-Www`) with `completedCount`, `scheduledCount`, and quantized `opacity` in `{ 0, 0.25, 0.5, 0.75, 1.0 }` applied to the habit's assigned Sprint 1 palette `colorHex` (`FR-S2-08`, `BR-S2-05`).
+* **Year Heatmap Semantics (`mode=year`)**: Returns all **365/366 daily cells** (`Jan 1` through `Dec 31` of `year`) ordered chronologically (`YYYY-MM-DD`). Each cell includes `weekday` (`1 = Mon`..`7 = Sun`), `weekIndex` (`0..52` alignment column for the 7-row contribution grid), `month` (`1..12`), `scheduled` (`boolean`), `completedCount` (`0 | 1`), `scheduledCount` (`0 | 1`), and `opacity` (`0` for unlogged or future days rendered as neutral empty squares; `1.0` for completed days `<= anchorToday` shaded in the habit's assigned Sprint 1 palette `colorHex`) (`FR-S2-08`, `BR-S2-05`).
+  ```json
+  {
+    "key": "2026-11-01",
+    "label": "1",
+    "weekday": 7,
+    "weekIndex": 43,
+    "month": 11,
+    "scheduled": true,
+    "completedCount": 1,
+    "scheduledCount": 1,
+    "opacity": 1.0
+  }
+  ```
 
 ---
 

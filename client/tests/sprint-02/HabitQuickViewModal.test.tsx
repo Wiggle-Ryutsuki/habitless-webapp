@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { HabitCalendarPage } from '../../src/pages/HabitCalendarPage.js';
@@ -48,6 +48,9 @@ describe('Habit Quick-View Card Modal (UI-S2-01)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Pin Date to Friday 2026-11-27 so THREE_TIMES_WEEKLY ([1, 3, 5]) habit is due regardless of run day
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-27T12:00:00'));
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: {
         id: 1,
@@ -66,6 +69,10 @@ describe('Habit Quick-View Card Modal (UI-S2-01)', () => {
     vi.spyOn(HabitsService, 'fetchNotes').mockResolvedValue([]);
     vi.spyOn(HabitsService, 'fetchHabits').mockResolvedValue([]);
     vi.spyOn(HabitsService, 'fetchCalendarMatrix').mockResolvedValue(sampleMatrix);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const renderCalendarPage = () =>

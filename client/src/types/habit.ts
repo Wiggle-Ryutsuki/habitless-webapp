@@ -174,3 +174,45 @@ export interface ParticipantDashboardResponse {
   programCompletion: DashboardProgramCompletion;
 }
 
+export interface HabitHeatmapCell {
+  key: string;
+  label: string;
+  scheduled: boolean;
+  completedCount: number;
+  scheduledCount: number;
+  opacity: number;
+  weekday?: number;
+  weekIndex?: number;
+  month?: number;
+}
+
+export interface HabitHeatmapData {
+  mode: 'month' | 'year';
+  month: number | null;
+  year: number;
+  cells: HabitHeatmapCell[];
+}
+
+export interface HabitStreakSummary {
+  currentStreak: number;
+  highestStreak: number;
+}
+
+export interface HabitStatsResponse {
+  habit: {
+    id: number;
+    title: string;
+    description: string | null;
+    category: string | null;
+    colorHex: string;
+    frequency: FrequencyType;
+    daysOfWeek: number[];
+    startDate: string;
+    endDate: string | null;
+    targetCount: number;
+    programId: number | null;
+  };
+  streaks: HabitStreakSummary;
+  heatmap: HabitHeatmapData;
+}
+
