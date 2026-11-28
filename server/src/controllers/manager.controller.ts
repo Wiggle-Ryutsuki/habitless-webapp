@@ -23,21 +23,25 @@ export async function listManagerPrograms(req: Request, res: Response, next: Nex
       },
     });
 
-    const response = programs.map((p) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      category: p.category,
-      startDate: p.startDate,
-      endDate: p.endDate,
-      status: p.status,
-      previouslyPublished: p.previouslyPublished,
-      activitiesCount: p.activities.length,
-      enrollmentsCount: p._count.enrollments,
-      inviteUrl: p.status === 'PUBLISHED' ? `/challenges/${p.id}` : null,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    }));
+    const response = programs.map((p) => {
+      const durationDays = p.durationDays || Math.max(1, Math.round((new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      return {
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        category: p.category,
+        durationDays,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        status: p.status,
+        previouslyPublished: p.previouslyPublished,
+        activitiesCount: p.activities.length,
+        enrollmentsCount: p._count.enrollments,
+        inviteUrl: p.status === 'PUBLISHED' ? `/challenges/${p.id}` : null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      };
+    });
 
     res.json(response);
   } catch (error) {
@@ -72,8 +76,11 @@ export async function getManagerProgram(req: Request, res: Response, next: NextF
       throw new AppError(403, 'FORBIDDEN', 'Access denied to this program.');
     }
 
+    const durationDays = program.durationDays || Math.max(1, Math.round((new Date(program.endDate).getTime() - new Date(program.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
     res.json({
       ...program,
+      durationDays,
       enrollmentsCount: program._count?.enrollments ?? 0,
       inviteUrl: program.status === 'PUBLISHED' ? `/challenges/${program.id}` : null,
     });
@@ -90,7 +97,18 @@ export async function createProgram(req: Request, res: Response, next: NextFunct
     }
 
     const managerId = req.user!.id;
-    const { title, description, category, startDate, endDate, activities } = req.body;
+    const { title, description, category, durationDays: rawDuration, startDate: rawStart, endDate: rawEnd, activities } = req.body;
+
+    let durationDays = rawDuration !== undefined && rawDuration !== null ? parseInt(rawDuration, 10) : undefined;
+    if (!durationDays && rawStart && rawEnd) {
+      durationDays = Math.max(1, Math.round((new Date(rawEnd).getTime() - new Date(rawStart).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    }
+    if (!durationDays || isNaN(durationDays)) {
+      durationDays = 30;
+    }
+
+    const startDate = rawStart ? new Date(rawStart) : new Date();
+    const endDate = rawEnd ? new Date(rawEnd) : new Date(startDate.getTime() + durationDays * 86400000);
 
     const program = await prisma.challengeProgram.create({
       data: {
@@ -98,8 +116,9 @@ export async function createProgram(req: Request, res: Response, next: NextFunct
         title: title.trim(),
         description: description ? description.trim() : null,
         category: category.trim(),
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        durationDays,
+        startDate,
+        endDate,
         status: 'DRAFT',
         activities: {
           create: activities.map((a: any) => {
@@ -160,12 +179,69 @@ export async function updateProgram(req: Request, res: Response, next: NextFunct
       throw new AppError(422, 'VALIDATION_ERROR', 'The request payload failed validation.', validation.fieldErrors);
     }
 
-    const { title, description, category, startDate, endDate, activities } = req.body;
+    const { title, description, category, durationDays: rawDuration, startDate: rawStart, endDate: rawEnd, activities } = req.body;
+
+    let durationDays = rawDuration !== undefined && rawDuration !== null ? parseInt(rawDuration, 10) : undefined;
+    if (!durationDays && rawStart && rawEnd) {
+      durationDays = Math.max(1, Math.round((new Date(rawEnd).getTime() - new Date(rawStart).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    }
+    if (!durationDays || isNaN(durationDays)) {
+      durationDays = existing.durationDays || 30;
+    }
+
+    const startDate = rawStart ? new Date(rawStart) : existing.startDate;
+    const endDate = rawEnd ? new Date(rawEnd) : (rawDuration ? new Date(startDate.getTime() + durationDays * 86400000) : existing.endDate);
 
     const updated = await prisma.$transaction(async (tx) => {
-      await tx.programActivity.deleteMany({
-        where: { programId },
-      });
+      // Manage activities: update existing by id (or by index), create new ones, delete removed ones
+      const existingActs = existing.activities || [];
+      const updatedActivityIds: number[] = [];
+
+      for (let i = 0; i < activities.length; i++) {
+        const a = activities[i];
+        const daysOfWeek = Array.isArray(a.daysOfWeek) && a.daysOfWeek.length > 0
+          ? [...a.daysOfWeek].sort((x: number, y: number) => x - y)
+          : getDaysFromFrequency(a.frequency);
+        const frequency = a.frequency || (a.daysOfWeek ? deriveFrequencyFromDays(a.daysOfWeek) : 'DAILY');
+
+        const matchedExisting = a.id
+          ? existingActs.find((ea) => ea.id === a.id)
+          : (i < existingActs.length ? existingActs[i] : null);
+
+        if (matchedExisting) {
+          await tx.programActivity.update({
+            where: { id: matchedExisting.id },
+            data: {
+              title: a.title.trim(),
+              description: a.description ? a.description.trim() : null,
+              frequency: frequency as any,
+              daysOfWeek,
+              targetCount: a.targetCount !== undefined ? a.targetCount : 1,
+            },
+          });
+          updatedActivityIds.push(matchedExisting.id);
+        } else {
+          const created = await tx.programActivity.create({
+            data: {
+              programId,
+              title: a.title.trim(),
+              description: a.description ? a.description.trim() : null,
+              frequency: frequency as any,
+              daysOfWeek,
+              targetCount: a.targetCount !== undefined ? a.targetCount : 1,
+            },
+          });
+          updatedActivityIds.push(created.id);
+        }
+      }
+
+      // Delete any existing activities that were removed
+      const removedIds = existingActs.filter((ea) => !updatedActivityIds.includes(ea.id)).map((ea) => ea.id);
+      if (removedIds.length > 0) {
+        await tx.programActivity.deleteMany({
+          where: { id: { in: removedIds } },
+        });
+      }
 
       return tx.challengeProgram.update({
         where: { id: programId },
@@ -173,26 +249,13 @@ export async function updateProgram(req: Request, res: Response, next: NextFunct
           title: title.trim(),
           description: description ? description.trim() : null,
           category: category.trim(),
+          durationDays,
           startDate: new Date(startDate),
           endDate: new Date(endDate),
-          activities: {
-            create: activities.map((a: any) => {
-              const daysOfWeek = Array.isArray(a.daysOfWeek) && a.daysOfWeek.length > 0
-                ? [...a.daysOfWeek].sort((x: number, y: number) => x - y)
-                : getDaysFromFrequency(a.frequency);
-              const frequency = a.frequency || (a.daysOfWeek ? deriveFrequencyFromDays(a.daysOfWeek) : 'DAILY');
-              return {
-                title: a.title.trim(),
-                description: a.description ? a.description.trim() : null,
-                frequency: frequency as any,
-                daysOfWeek,
-                targetCount: a.targetCount !== undefined ? a.targetCount : 1,
-              };
-            }),
-          },
+          hasTemplateEditsSincePublish: existing.previouslyPublished ? true : existing.hasTemplateEditsSincePublish,
         },
         include: {
-          activities: true,
+          activities: { orderBy: { id: 'asc' } },
         },
       });
     });
@@ -231,11 +294,41 @@ export async function deployProgram(req: Request, res: Response, next: NextFunct
 
     let program = existing;
     if (existing.status === 'DRAFT') {
-      program = await prisma.challengeProgram.update({
-        where: { id: programId },
-        data: {
-          status: 'PUBLISHED',
-        },
+      const isRepublish = existing.previouslyPublished === true;
+      const hasEdits = existing.hasTemplateEditsSincePublish === true;
+      const nextVersion = (isRepublish && hasEdits) ? existing.version + 1 : existing.version;
+
+      program = await prisma.$transaction(async (tx) => {
+        // Automatically restore unresolved ENDED habits to ACTIVE
+        await tx.habit.updateMany({
+          where: {
+            programId,
+            challengeStatus: 'ENDED',
+          },
+          data: {
+            challengeStatus: 'ACTIVE',
+          },
+        });
+
+        // Reactivate enrollments for active participants
+        await tx.programEnrollment.updateMany({
+          where: {
+            programId,
+            status: 'ACTIVE',
+          },
+          data: {
+            isActive: true,
+          },
+        });
+
+        return tx.challengeProgram.update({
+          where: { id: programId },
+          data: {
+            status: 'PUBLISHED',
+            version: nextVersion,
+            hasTemplateEditsSincePublish: false,
+          },
+        });
       });
     }
 
@@ -357,9 +450,20 @@ export async function unpublishProgram(req: Request, res: Response, next: NextFu
     const updated = await prisma.$transaction(async (tx) => {
       // Deactivate enrollments for enrolled participants
       await tx.programEnrollment.updateMany({
-        where: { programId },
+        where: { programId, status: 'ACTIVE' },
         data: {
           isActive: false,
+        },
+      });
+
+      // Transition participant habits to ENDED
+      await tx.habit.updateMany({
+        where: {
+          programId,
+          challengeStatus: 'ACTIVE',
+        },
+        data: {
+          challengeStatus: 'ENDED',
         },
       });
 

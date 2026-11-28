@@ -44,6 +44,16 @@ export async function getHabits(req: Request, res: Response, next: NextFunction)
         userId,
         isActive,
       },
+      include: {
+        program: {
+          select: {
+            id: true,
+            title: true,
+            version: true,
+            status: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'asc',
       },

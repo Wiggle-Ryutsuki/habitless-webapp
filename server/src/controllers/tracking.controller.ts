@@ -30,6 +30,16 @@ export async function getParticipantDashboard(req: Request, res: Response, next:
         userId,
         isActive: true,
       },
+      include: {
+        program: {
+          select: {
+            id: true,
+            title: true,
+            version: true,
+            status: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'asc',
       },
@@ -97,6 +107,16 @@ export async function getTodayChecklist(req: Request, res: Response, next: NextF
         userId,
         isActive: true,
       },
+      include: {
+        program: {
+          select: {
+            id: true,
+            title: true,
+            version: true,
+            status: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'asc',
       },
@@ -150,6 +170,16 @@ export async function getTodayChecklist(req: Request, res: Response, next: NextF
         isCompleted,
         logId: log ? log.id : null,
         programId: h.programId,
+        challengeStatus: h.challengeStatus,
+        syncedVersion: h.syncedVersion,
+        sourceActivityId: h.sourceActivityId,
+        programTitle: h.program?.title ?? null,
+        programVersion: h.program?.version ?? null,
+        programStatus: h.program?.status ?? null,
+        updateAvailable:
+          h.programId !== null &&
+          h.challengeStatus === 'ACTIVE' &&
+          (h.syncedVersion ?? 1) < (h.program?.version ?? 1),
       };
     });
 
@@ -281,6 +311,16 @@ export async function getCalendarMatrix(req: Request, res: Response, next: NextF
         userId,
         isActive: true,
       },
+      include: {
+        program: {
+          select: {
+            id: true,
+            title: true,
+            version: true,
+            status: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'asc',
       },
@@ -339,6 +379,16 @@ export async function getCalendarMatrix(req: Request, res: Response, next: NextF
         targetCount: h.targetCount,
         goalAchievedCount: achieved,
         programId: h.programId,
+        challengeStatus: h.challengeStatus,
+        syncedVersion: h.syncedVersion,
+        sourceActivityId: h.sourceActivityId,
+        programTitle: h.program?.title ?? null,
+        programVersion: h.program?.version ?? null,
+        programStatus: h.program?.status ?? null,
+        updateAvailable:
+          h.programId !== null &&
+          h.challengeStatus === 'ACTIVE' &&
+          (h.syncedVersion ?? 1) < (h.program?.version ?? 1),
         days,
       };
     });

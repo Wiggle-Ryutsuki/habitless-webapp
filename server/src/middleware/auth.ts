@@ -60,6 +60,46 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 }
 
+export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
+  try {
+    let token = req.cookies?.token;
+
+    if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return next();
+    }
+
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, ENV.JWT_SECRET) as unknown as JwtPayload;
+    } catch (jwtErr) {
+      return next();
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        id: decoded.sub,
+        isActive: true,
+      },
+    });
+
+    if (user) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
 export function requireRole(allowedRoles: Role[], errorCode = 'FORBIDDEN') {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

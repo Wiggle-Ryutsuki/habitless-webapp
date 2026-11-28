@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { CalendarHabit, CalendarMatrixResponse } from '../types/habit.js';
 import { fetchCalendarMatrix, toggleHabitCompletion } from '../services/habits.service.js';
 import { isHabitDueOnDay } from './DayOfWeekSelector.js';
+import { ChallengeInfoModal } from './ChallengeInfoModal.js';
 
 export interface CalendarMatrixProps {
   initialMonth?: number;
@@ -28,6 +29,17 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [matrixReloadKey, setMatrixReloadKey] = useState(0);
+
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false);
+  const [selectedChallengeProgramId, setSelectedChallengeProgramId] = useState<number | null>(null);
+  const [selectedChallengeStatus, setSelectedChallengeStatus] = useState<'ACTIVE' | 'ENDED' | null>(null);
+
+  const handleOpenChallengeModal = (programId: number, status?: 'ACTIVE' | 'ENDED' | null) => {
+    setSelectedChallengeProgramId(programId);
+    setSelectedChallengeStatus(status || null);
+    setChallengeModalOpen(true);
+  };
 
   // Load calendar matrix on month/year/refreshKey change
   useEffect(() => {
@@ -55,7 +67,7 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [currentMonth, currentYear, refreshKey]);
+  }, [currentMonth, currentYear, refreshKey, matrixReloadKey]);
 
   // Navigate months
   const handlePrevMonth = () => {
@@ -647,6 +659,32 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
                           </span>
                         </button>
 
+                        {h.programId && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenChallengeModal(h.programId!, h.challengeStatus);
+                            }}
+                            aria-label={h.challengeStatus === 'ENDED' ? 'View ended challenge details' : 'View challenge details'}
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              padding: '2px 6px',
+                              borderRadius: '8px',
+                              backgroundColor: h.challengeStatus === 'ENDED' ? '#ffebee' : '#fff8e1',
+                              color: h.challengeStatus === 'ENDED' ? '#c62828' : '#b78103',
+                              border: `1px solid ${h.challengeStatus === 'ENDED' ? '#ef9a9a' : '#ffe082'}`,
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              margin: '0 4px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {h.challengeStatus === 'ENDED' ? 'Challenge (Ended)' : 'Challenge'}
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={(e) => {
@@ -769,6 +807,14 @@ export const CalendarMatrix: React.FC<CalendarMatrixProps> = ({
         </div>
       )}
     </div>
+
+    <ChallengeInfoModal
+      isOpen={challengeModalOpen}
+      programId={selectedChallengeProgramId}
+      initialChallengeStatus={selectedChallengeStatus}
+      onClose={() => setChallengeModalOpen(false)}
+      onEnrollmentChanged={() => setMatrixReloadKey((k) => k + 1)}
+    />
   </div>
 );
 };

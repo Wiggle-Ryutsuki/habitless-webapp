@@ -13,8 +13,9 @@ export interface ProgramInput {
   title: string;
   category: string;
   description?: string | null;
-  startDate: string | Date;
-  endDate: string | Date;
+  durationDays?: number;
+  startDate?: string | Date;
+  endDate?: string | Date;
   activities: ActivityInput[];
 }
 
@@ -79,45 +80,61 @@ export function validateProgramInput(input: any): { isValid: boolean; fieldError
     }
   }
 
-  // Dates: startDate and endDate required and valid
-  if (!input?.startDate) {
+  // Duration (number of days) or legacy dates
+  if (input?.durationDays !== undefined && input?.durationDays !== null) {
+    const dur = typeof input.durationDays === 'number' ? input.durationDays : parseInt(input.durationDays, 10);
+    if (isNaN(dur) || dur < 1 || dur > 365) {
+      fieldErrors.push({
+        field: 'durationDays',
+        message: 'Duration must be between 1 and 365 days.',
+      });
+    }
+  } else if (!input?.startDate && !input?.endDate) {
     fieldErrors.push({
-      field: 'startDate',
-      message: 'Start date is required.',
+      field: 'durationDays',
+      message: 'Challenge duration (number of days) is required.',
     });
-  }
-
-  if (!input?.endDate) {
-    fieldErrors.push({
-      field: 'endDate',
-      message: 'End date is required.',
-    });
-  }
-
-  if (input?.startDate && input?.endDate) {
-    const startDate = new Date(input.startDate);
-    const endDate = new Date(input.endDate);
-
-    if (isNaN(startDate.getTime())) {
+  } else {
+    // Legacy dates validation
+    if (!input?.startDate) {
       fieldErrors.push({
         field: 'startDate',
-        message: 'Start date must be a valid date.',
+        message: 'Start date is required.',
       });
     }
 
-    if (isNaN(endDate.getTime())) {
+    if (!input?.endDate) {
       fieldErrors.push({
         field: 'endDate',
-        message: 'End date must be a valid date.',
+        message: 'End date is required.',
       });
     }
 
-    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-      if (!isValidDateRange(input.startDate, input.endDate)) {
+    if (input?.startDate && input?.endDate) {
+      const startDate = new Date(input.startDate);
+      const endDate = new Date(input.endDate);
+
+      if (isNaN(startDate.getTime())) {
+        fieldErrors.push({
+          field: 'startDate',
+          message: 'Start date must be a valid date.',
+        });
+      }
+
+      if (isNaN(endDate.getTime())) {
         fieldErrors.push({
           field: 'endDate',
-          message: 'End date must be on or after start date.',
+          message: 'End date must be a valid date.',
         });
+      }
+
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        if (!isValidDateRange(input.startDate, input.endDate)) {
+          fieldErrors.push({
+            field: 'endDate',
+            message: 'End date must be on or after start date.',
+          });
+        }
       }
     }
   }
