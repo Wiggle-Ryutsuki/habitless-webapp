@@ -481,6 +481,52 @@ export const ChallengeInfoModal: React.FC<ChallengeInfoModalProps> = ({
                 </div>
               )}
 
+              {/* Active Enrollment Countdown Banner */}
+              {isEnrolled && challenge.myEnrollment && (
+                <div
+                  style={{
+                    backgroundColor: '#ebf8ff',
+                    border: '1px solid #bee3f8',
+                    borderRadius: '8px',
+                    padding: '0.875rem 1rem',
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2b6cb0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Active Challenge Countdown
+                    </div>
+                    <div style={{ fontSize: '1.125rem', fontWeight: 800, color: '#2c5282' }}>
+                      {challenge.myEnrollment.daysRemaining !== undefined && challenge.myEnrollment.daysRemaining > 0
+                        ? `⏱️ ${challenge.myEnrollment.daysRemaining} days remaining`
+                        : challenge.myEnrollment.isCompleted
+                        ? '🏁 Challenge Completed'
+                        : '⏱️ Final Day!'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#4a5568' }}>
+                      Enrolled on {new Date(challenge.myEnrollment.enrolledAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: '#3182ce',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Day {challenge.myEnrollment.currentDay ?? 1} of {challenge.durationDays || 30}
+                  </div>
+                </div>
+              )}
+
               {/* Metadata Details */}
               <div
                 style={{
@@ -498,8 +544,10 @@ export const ChallengeInfoModal: React.FC<ChallengeInfoModalProps> = ({
                   <strong>Organizer:</strong> {challenge.manager?.fullName || 'Program Manager'}
                 </div>
                 <div>
-                  <strong>Duration:</strong> {challenge.startDate?.split('T')[0]} to{' '}
-                  {challenge.endDate?.split('T')[0]}
+                  <strong>Duration:</strong> {challenge.durationDays || 30} Days
+                  <span style={{ display: 'block', fontSize: '0.75rem', color: '#718096' }}>
+                    Starts on acceptance
+                  </span>
                 </div>
                 <div>
                   <strong>Version:</strong> v{challenge.version}

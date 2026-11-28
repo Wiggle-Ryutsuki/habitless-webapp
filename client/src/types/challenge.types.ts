@@ -21,6 +21,7 @@ export interface ChallengeProgram {
   title: string;
   description: string | null;
   category: string;
+  durationDays?: number;
   startDate: string;
   endDate: string;
   status: ProgramStatus;
@@ -39,8 +40,9 @@ export interface CreateProgramPayload {
   title: string;
   category: string;
   description?: string | null;
-  startDate: string;
-  endDate: string;
+  durationDays?: number;
+  startDate?: string;
+  endDate?: string;
   activities: {
     id?: number;
     title: string;
@@ -85,6 +87,10 @@ export interface ChallengeEnrollmentInfo {
   enrolledAt: string;
   leftAt?: string | null;
   isActive?: boolean;
+  durationDays?: number;
+  currentDay?: number;
+  daysRemaining?: number;
+  isCompleted?: boolean;
   hasUnresolvedEndedHabits?: boolean;
   updateAvailable?: boolean;
 }
@@ -94,6 +100,7 @@ export interface ChallengeItem {
   title: string;
   description: string | null;
   category: string;
+  durationDays?: number;
   startDate: string;
   endDate: string;
   status: ProgramStatus;

@@ -127,6 +127,7 @@ model ChallengeProgram {
   title                         String
   description                   String?
   category                      String              // e.g. "Wellness", "Fitness", "Mindfulness"
+  durationDays                  Int                 @default(30)
   startDate                     DateTime
   endDate                       DateTime
   status                        ProgramStatus       @default(DRAFT)

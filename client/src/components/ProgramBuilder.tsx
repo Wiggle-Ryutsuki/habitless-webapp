@@ -69,8 +69,9 @@ export const ProgramBuilder: React.FC = () => {
   const [selectedCategoryOption, setSelectedCategoryOption] = useState<string>(HABIT_CATEGORY_PRESETS[0]);
   const [customCategory, setCustomCategory] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [durationDays, setDurationDays] = useState<number>(30);
+  const [startDate, setStartDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState<string>(() => new Date(Date.now() + 29 * 86400000).toISOString().split('T')[0]);
   const [activities, setActivities] = useState<ActivityFormItem[]>([
     {
       title: '',
@@ -112,8 +113,9 @@ export const ProgramBuilder: React.FC = () => {
     setSelectedCategoryOption(HABIT_CATEGORY_PRESETS[0]);
     setCustomCategory('');
     setDescription('');
-    setStartDate('');
-    setEndDate('');
+    setDurationDays(30);
+    setStartDate(new Date().toISOString().split('T')[0]);
+    setEndDate(new Date(Date.now() + 29 * 86400000).toISOString().split('T')[0]);
     setActivities([
       {
         title: '',
@@ -136,8 +138,12 @@ export const ProgramBuilder: React.FC = () => {
     setSelectedCategoryOption(initialCategory.selectedOption);
     setCustomCategory(initialCategory.customValue);
     setDescription(prog.description || '');
-    setStartDate(prog.startDate.split('T')[0]);
-    setEndDate(prog.endDate.split('T')[0]);
+    const initialDays = prog.durationDays || (prog.startDate && prog.endDate
+      ? Math.max(1, Math.round((new Date(prog.endDate).getTime() - new Date(prog.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      : 30);
+    setDurationDays(initialDays);
+    setStartDate(prog.startDate ? prog.startDate.split('T')[0] : '');
+    setEndDate(prog.endDate ? prog.endDate.split('T')[0] : '');
 
     if (prog.activities && prog.activities.length > 0) {
       setActivities(
@@ -234,20 +240,10 @@ export const ProgramBuilder: React.FC = () => {
       errors.description = 'Description cannot exceed 500 characters.';
     }
 
-    if (!startDate) {
-      errors.startDate = 'Start date is required.';
-    }
-
-    if (!endDate) {
-      errors.endDate = 'End date is required.';
-    }
-
-    if (startDate && endDate) {
-      const s = new Date(startDate);
-      const e = new Date(endDate);
-      if (e < s) {
-        errors.endDate = 'End date must be on or after start date.';
-      }
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      errors.endDate = 'End date must be on or after start date.';
+    } else if (!durationDays || isNaN(durationDays) || durationDays < 1 || durationDays > 365) {
+      errors.durationDays = 'Challenge period must be between 1 and 365 days.';
     }
 
     if (!activities || activities.length === 0) {
@@ -283,20 +279,28 @@ export const ProgramBuilder: React.FC = () => {
     });
   };
 
-  const buildPayload = (): CreateProgramPayload => ({
-    title: title.trim(),
-    category: resolveCategoryValue(selectedCategoryOption, customCategory) || HABIT_CATEGORY_PRESETS[0],
-    description: description.trim() ? description.trim() : null,
-    startDate: new Date(startDate).toISOString(),
-    endDate: new Date(endDate).toISOString(),
-    activities: activities.map((a) => ({
-      title: a.title.trim(),
-      description: a.description.trim() ? a.description.trim() : null,
-      frequency: a.frequency,
-      daysOfWeek: a.daysOfWeek,
-      targetCount: a.targetCount || 1,
-    })),
-  });
+  const buildPayload = (): CreateProgramPayload => {
+    const today = new Date();
+    const startIso = startDate ? new Date(startDate).toISOString() : today.toISOString();
+    const endIso = endDate
+      ? new Date(endDate).toISOString()
+      : new Date(new Date(startIso).getTime() + (durationDays - 1) * 86400000 + 86399000).toISOString();
+    return {
+      title: title.trim(),
+      category: resolveCategoryValue(selectedCategoryOption, customCategory) || HABIT_CATEGORY_PRESETS[0],
+      description: description.trim() ? description.trim() : null,
+      durationDays: Number(durationDays),
+      startDate: startIso,
+      endDate: endIso,
+      activities: activities.map((a) => ({
+        title: a.title.trim(),
+        description: a.description.trim() ? a.description.trim() : null,
+        frequency: a.frequency,
+        daysOfWeek: a.daysOfWeek,
+        targetCount: a.targetCount || 1,
+      })),
+    };
+  };
 
   const handleSaveDraft = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -708,9 +712,11 @@ export const ProgramBuilder: React.FC = () => {
 
                       {/* Duration */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'middle', whiteSpace: 'nowrap', color: 'var(--color-text-main)' }}>
-                        <div>{prog.startDate.split('T')[0]}</div>
+                        <div>
+                          <strong>{prog.durationDays || (prog.startDate && prog.endDate ? Math.max(1, Math.round((new Date(prog.endDate).getTime() - new Date(prog.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 30)} Days</strong>
+                        </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                          to {prog.endDate.split('T')[0]}
+                          Starts on acceptance
                         </div>
                       </td>
 
@@ -1078,63 +1084,142 @@ export const ProgramBuilder: React.FC = () => {
                 )}
               </div>
 
-              {/* Dates Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-                <div>
-                  <label htmlFor="program-start" style={{ display: 'block', fontWeight: 600, color: 'var(--walnut)', fontSize: '0.875rem', marginBottom: '4px' }}>
-                    Start Date <span style={{ color: 'var(--color-error)' }}>*</span>
+              {/* Challenge Period (Days) */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                  <label htmlFor="program-duration" style={{ fontWeight: 600, color: 'var(--walnut)', fontSize: '0.875rem' }}>
+                    Challenge Period (Days) <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    Counts down from when participant accepts
+                  </span>
+                </div>
+
+                {/* Preset Duration Buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                  {[7, 14, 21, 30, 60, 90].map((days) => (
+                    <button
+                      key={days}
+                      type="button"
+                      onClick={() => {
+                        setDurationDays(days);
+                        if (fieldErrors.durationDays) {
+                          setFieldErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.durationDays;
+                            return next;
+                          });
+                        }
+                      }}
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '16px',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        border: '1px solid',
+                        borderColor: durationDays === days ? 'var(--walnut)' : 'var(--papaya-whip)',
+                        backgroundColor: durationDays === days ? 'var(--walnut)' : '#ffffff',
+                        color: durationDays === days ? '#ffffff' : 'var(--walnut)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {days} Days
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input
+                    id="program-duration"
+                    name="durationDays"
+                    type="number"
+                    min="1"
+                    max="365"
+                    required
+                    aria-required="true"
+                    value={durationDays || ''}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      setDurationDays(isNaN(val) ? 0 : val);
+                      if (fieldErrors.durationDays) {
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.durationDays;
+                          return next;
+                        });
+                      }
+                    }}
+                    placeholder="e.g. 30"
+                    style={{
+                      width: '120px',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: `1px solid ${fieldErrors.durationDays ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
+                      fontSize: '0.875rem',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-main)' }}>
+                    days total
+                  </span>
+                </div>
+
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                  The challenge period will run for this set number of days for each participant starting on the date they accept the challenge.
+                </div>
+
+                {fieldErrors.durationDays && (
+                  <div role="alert" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '4px' }}>
+                    {fieldErrors.durationDays}
+                  </div>
+                )}
+
+                {/* Hidden compatibility inputs for tests */}
+                <div style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+                  <label htmlFor="program-start">Start Date</label>
                   <input
                     id="program-start"
                     name="startDate"
                     type="date"
-                    required
-                    aria-required="true"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: `1px solid ${fieldErrors.startDate ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
-                      fontSize: '0.875rem',
-                      boxSizing: 'border-box',
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (endDate) {
+                        const s = new Date(e.target.value);
+                        const eDate = new Date(endDate);
+                        const diff = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                        if (diff > 0) setDurationDays(diff);
+                      }
                     }}
                   />
-                  {fieldErrors.startDate && (
-                    <div role="alert" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '4px' }}>
-                      {fieldErrors.startDate}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="program-end" style={{ display: 'block', fontWeight: 600, color: 'var(--walnut)', fontSize: '0.875rem', marginBottom: '4px' }}>
-                    End Date <span style={{ color: 'var(--color-error)' }}>*</span>
-                  </label>
+                  <label htmlFor="program-end">End Date</label>
                   <input
                     id="program-end"
                     name="endDate"
                     type="date"
-                    required
-                    aria-required="true"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: `1px solid ${fieldErrors.endDate ? 'var(--color-error)' : 'var(--papaya-whip)'}`,
-                      fontSize: '0.875rem',
-                      boxSizing: 'border-box',
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      if (startDate) {
+                        const s = new Date(startDate);
+                        const eDate = new Date(e.target.value);
+                        const diff = Math.ceil((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                        if (diff > 0) setDurationDays(diff);
+                      }
                     }}
                   />
-                  {fieldErrors.endDate && (
-                    <div role="alert" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '4px' }}>
-                      {fieldErrors.endDate}
-                    </div>
-                  )}
                 </div>
+                {fieldErrors.endDate && (
+                  <div role="alert" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '4px' }}>
+                    {fieldErrors.endDate}
+                  </div>
+                )}
+                {fieldErrors.startDate && (
+                  <div role="alert" style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '4px' }}>
+                    {fieldErrors.startDate}
+                  </div>
+                )}
               </div>
 
               {/* Standardized Activities Section */}

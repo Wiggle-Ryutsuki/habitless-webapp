@@ -57,7 +57,7 @@ export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = (
     return diff > 0 ? diff : 1;
   };
 
-  const daysCount = calculateDays(challenge.startDate, challenge.endDate);
+  const daysCount = challenge.durationDays || calculateDays(challenge.startDate, challenge.endDate);
 
   return (
     <div
@@ -126,10 +126,13 @@ export const ChallengeInvitationCard: React.FC<ChallengeInvitationCardProps> = (
             gap: '0.5rem',
           }}
         >
-          <span>
-            📅 Duration: {challenge.startDate.split('T')[0]} to {challenge.endDate.split('T')[0]}
-          </span>
-          <span style={{ backgroundColor: '#fff', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8125rem' }}>
+          <div>
+            <span>⏱️ Challenge Period: <strong>{daysCount} Days</strong></span>
+            <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-muted)', marginTop: '2px' }}>
+              Counts down from the date you accept the challenge
+            </div>
+          </div>
+          <span style={{ backgroundColor: '#fff', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 700 }}>
             {daysCount} Days
           </span>
         </div>

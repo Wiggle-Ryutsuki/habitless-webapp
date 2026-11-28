@@ -273,49 +273,65 @@ export const ChallengesHubPage: React.FC = () => {
                         {prog.category}
                       </span>
 
-                      {isEnded ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span
                           style={{
                             fontSize: '0.6875rem',
                             fontWeight: 700,
                             padding: '2px 8px',
                             borderRadius: '10px',
-                            backgroundColor: '#ffebee',
-                            color: '#c62828',
-                            border: '1px solid #ef9a9a',
+                            backgroundColor: '#edf2f7',
+                            color: '#4a5568',
                           }}
                         >
-                          Challenge (Ended)
+                          ⏱️ {prog.durationDays || 30}d
                         </span>
-                      ) : isEnrolled ? (
-                        <span
-                          style={{
-                            fontSize: '0.6875rem',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            backgroundColor: '#e6fffa',
-                            color: '#234e52',
-                            border: '1px solid #81e6d9',
-                          }}
-                        >
-                          Enrolled
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: '0.6875rem',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            backgroundColor: '#fff8e1',
-                            color: '#b78103',
-                            border: '1px solid #ffe082',
-                          }}
-                        >
-                          Challenge
-                        </span>
-                      )}
+                        {isEnded ? (
+                          <span
+                            style={{
+                              fontSize: '0.6875rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: '#ffebee',
+                              color: '#c62828',
+                              border: '1px solid #ef9a9a',
+                            }}
+                          >
+                            Challenge (Ended)
+                          </span>
+                        ) : isEnrolled ? (
+                          <span
+                            style={{
+                              fontSize: '0.6875rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: '#e6fffa',
+                              color: '#234e52',
+                              border: '1px solid #81e6d9',
+                            }}
+                          >
+                            {prog.myEnrollment?.daysRemaining !== undefined
+                              ? `Day ${prog.myEnrollment.currentDay ?? 1}/${prog.durationDays || 30} (${prog.myEnrollment.daysRemaining}d left)`
+                              : 'Enrolled'}
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: '0.6875rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: '#fff8e1',
+                              color: '#b78103',
+                              border: '1px solid #ffe082',
+                            }}
+                          >
+                            Challenge
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Title & Organizer */}

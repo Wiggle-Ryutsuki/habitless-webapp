@@ -69,14 +69,32 @@ export async function listChallenges(req: Request, res: Response, next: NextFunc
           ? Math.round((p.ratings.reduce((sum, r) => sum + r.rating, 0) / ratingsCount) * 10) / 10
           : 0;
 
+        const durationDays = p.durationDays || Math.max(1, Math.round((new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+        let countdown: any = null;
+        if (userEnrollment && userEnrollment.status === 'ACTIVE') {
+          const startDay = new Date(Date.UTC(userEnrollment.enrolledAt.getUTCFullYear(), userEnrollment.enrolledAt.getUTCMonth(), userEnrollment.enrolledAt.getUTCDate()));
+          const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+          const elapsedDays = Math.max(0, Math.floor((todayUtc.getTime() - startDay.getTime()) / (1000 * 60 * 60 * 24)));
+          const currentDay = Math.min(durationDays, elapsedDays + 1);
+          const daysRemaining = Math.max(0, durationDays - (elapsedDays + 1));
+          countdown = {
+            durationDays,
+            currentDay,
+            daysRemaining,
+            isCompleted: elapsedDays >= durationDays,
+          };
+        }
+
         const hasEndedHabit = p.habits.some((h) => h.challengeStatus === 'ENDED');
-        const isPastEnd = new Date(p.endDate) < now;
+        const isPastEnd = countdown ? countdown.isCompleted : new Date(p.endDate) < now;
 
         return {
           id: p.id,
           title: p.title,
           description: p.description,
           category: p.category,
+          durationDays,
           startDate: p.startDate,
           endDate: p.endDate,
           status: p.status,
@@ -92,6 +110,10 @@ export async function listChallenges(req: Request, res: Response, next: NextFunc
             ? {
                 status: userEnrollment.status,
                 enrolledAt: userEnrollment.enrolledAt,
+                durationDays,
+                currentDay: countdown?.currentDay ?? 1,
+                daysRemaining: countdown?.daysRemaining ?? durationDays,
+                isCompleted: countdown?.isCompleted ?? false,
               }
             : null,
           _hasEndedHabit: hasEndedHabit,
@@ -206,6 +228,8 @@ export async function getChallenge(req: Request, res: Response, next: NextFuncti
       ? program.ratings.find((r) => r.userId === userId)?.rating ?? null
       : null;
 
+    const durationDays = program.durationDays || Math.max(1, Math.round((new Date(program.endDate).getTime() - new Date(program.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
     let myEnrollment: any = null;
     if (userId && program.enrollments && program.enrollments.length > 0) {
       const enr = program.enrollments[0];
@@ -218,12 +242,23 @@ export async function getChallenge(req: Request, res: Response, next: NextFuncti
         enr.status === 'ACTIVE' &&
         activeClonedHabits.some((h) => (h.syncedVersion ?? 1) < program.version);
 
+      const now = new Date();
+      const startDay = new Date(Date.UTC(enr.enrolledAt.getUTCFullYear(), enr.enrolledAt.getUTCMonth(), enr.enrolledAt.getUTCDate()));
+      const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const elapsedDays = Math.max(0, Math.floor((todayUtc.getTime() - startDay.getTime()) / (1000 * 60 * 60 * 24)));
+      const currentDay = Math.min(durationDays, elapsedDays + 1);
+      const daysRemaining = Math.max(0, durationDays - (elapsedDays + 1));
+
       myEnrollment = {
         id: enr.id,
         status: enr.status,
         enrolledAt: enr.enrolledAt,
         leftAt: enr.leftAt,
         isActive: enr.isActive,
+        durationDays,
+        currentDay,
+        daysRemaining,
+        isCompleted: elapsedDays >= durationDays,
         hasUnresolvedEndedHabits,
         updateAvailable,
       };
@@ -261,6 +296,7 @@ export async function getChallenge(req: Request, res: Response, next: NextFuncti
       title: program.title,
       description: program.description,
       category: program.category,
+      durationDays,
       startDate: program.startDate,
       endDate: program.endDate,
       status: program.status,
@@ -349,8 +385,11 @@ export async function joinChallenge(req: Request, res: Response, next: NextFunct
 
       const now = new Date();
       const startUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      const challengeStart = new Date(challenge.startDate);
-      const effectiveStartDate = challengeStart > startUtc ? challengeStart : startUtc;
+      const durationDays = challenge.durationDays || Math.max(1, Math.round((new Date(challenge.endDate).getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+      // Period starts on the day participant accepts the challenge and runs for durationDays
+      const effectiveStartDate = startUtc;
+      const effectiveEndDate = new Date(startUtc.getTime() + (durationDays - 1) * 86400000 + (23 * 3600 + 59 * 60 + 59) * 1000);
 
       const createdHabits = [];
       for (let i = 0; i < challenge.activities.length; i++) {
@@ -408,7 +447,7 @@ export async function joinChallenge(req: Request, res: Response, next: NextFunct
             frequency: act.frequency,
             daysOfWeek,
             startDate: effectiveStartDate,
-            endDate: challenge.endDate,
+            endDate: effectiveEndDate,
             targetCount,
             isActive: true,
           },
@@ -574,6 +613,10 @@ export async function syncChallenge(req: Request, res: Response, next: NextFunct
       let updatedCount = 0;
       let addedCount = 0;
 
+      const durationDays = challenge.durationDays || Math.max(1, Math.round((new Date(challenge.endDate).getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      const refStart = participantHabits[0]?.startDate || new Date();
+      const refEnd = participantHabits[0]?.endDate || new Date(new Date(refStart).getTime() + (durationDays - 1) * 86400000 + (23 * 3600 + 59 * 60 + 59) * 1000);
+
       for (let i = 0; i < challenge.activities.length; i++) {
         const act = challenge.activities[i];
         const existingHabit = habitsByActivity.get(act.id);
@@ -587,7 +630,6 @@ export async function syncChallenge(req: Request, res: Response, next: NextFunct
               frequency: act.frequency,
               daysOfWeek: act.daysOfWeek,
               targetCount: act.targetCount,
-              endDate: challenge.endDate,
               syncedVersion: challenge.version,
             },
           });
@@ -607,8 +649,8 @@ export async function syncChallenge(req: Request, res: Response, next: NextFunct
               description: act.description,
               frequency: act.frequency,
               daysOfWeek: act.daysOfWeek,
-              startDate: new Date(),
-              endDate: challenge.endDate,
+              startDate: refStart,
+              endDate: refEnd,
               targetCount: act.targetCount,
               isActive: true,
             },
