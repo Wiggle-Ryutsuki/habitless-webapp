@@ -317,7 +317,7 @@ describe('Sprint 2 Feature 9: Manager Analytics & Directory', () => {
       });
 
       const backBtn = screen.getByTestId('back-to-dashboard-btn');
-      expect(backBtn).toHaveTextContent('← Back to Dashboard');
+      expect(backBtn).toHaveTextContent('Back to Dashboard');
       fireEvent.click(backBtn);
 
       await waitFor(() => {
