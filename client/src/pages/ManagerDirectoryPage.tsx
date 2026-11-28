@@ -323,7 +323,18 @@ export const ManagerDirectoryPage: React.FC = () => {
                 >
                   <button
                     type="button"
+                    data-testid={`view-challenge-btn-${c.id}`}
                     onClick={() => navigate(`/manager/challenges/${c.id}`)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#5c3513';
+                      const svg = e.currentTarget.querySelector('svg');
+                      if (svg) svg.style.transform = 'translateX(3px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--walnut)';
+                      const svg = e.currentTarget.querySelector('svg');
+                      if (svg) svg.style.transform = 'none';
+                    }}
                     style={{
                       width: '100%',
                       backgroundColor: 'var(--walnut)',
@@ -334,9 +345,30 @@ export const ManagerDirectoryPage: React.FC = () => {
                       fontWeight: 600,
                       fontSize: '0.875rem',
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 2px 4px rgba(114, 67, 25, 0.12)',
+                      transition: 'background-color 0.15s ease',
                     }}
                   >
-                    View Challenge Details →
+                    <span>View Challenge Details</span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{ transition: 'transform 0.15s ease' }}
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
                   </button>
                 </div>
               </div>
