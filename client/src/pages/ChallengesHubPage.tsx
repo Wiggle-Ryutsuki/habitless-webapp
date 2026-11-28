@@ -5,7 +5,7 @@ import { fetchChallenges, ChallengeApiError } from '../services/challenges.servi
 import { ChallengeInfoModal } from '../components/ChallengeInfoModal.js';
 import { HABIT_CATEGORY_PRESETS } from '../components/CategorySelector.js';
 
-type StatusFilterType = 'ALL' | 'AVAILABLE' | 'ENROLLED' | 'ENDED';
+type StatusFilterType = 'ALL' | 'AVAILABLE' | 'ENROLLED';
 
 export const ChallengesHubPage: React.FC = () => {
   const [challenges, setChallenges] = useState<ChallengeItem[]>([]);
@@ -145,13 +145,12 @@ export const ChallengesHubPage: React.FC = () => {
 
           {/* Status Filter Tabs */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {(['ALL', 'AVAILABLE', 'ENROLLED', 'ENDED'] as StatusFilterType[]).map((tab) => {
+            {(['ALL', 'AVAILABLE', 'ENROLLED'] as StatusFilterType[]).map((tab) => {
               const active = statusFilter === tab;
               const labels: Record<StatusFilterType, string> = {
                 ALL: 'All Challenges',
                 AVAILABLE: 'Available',
                 ENROLLED: 'Enrolled',
-                ENDED: 'Ended',
               };
               return (
                 <button
@@ -230,8 +229,7 @@ export const ChallengesHubPage: React.FC = () => {
             }}
           >
             {challenges.map((prog) => {
-              const isPastDate = new Date(prog.endDate) < new Date();
-              const isEnded = isPastDate || prog.status !== 'PUBLISHED';
+              const isEnded = prog.status !== 'PUBLISHED' || Boolean(prog.myEnrollment?.hasUnresolvedEndedHabits);
               const isEnrolled = prog.myEnrollment?.status === 'ACTIVE';
 
               return (

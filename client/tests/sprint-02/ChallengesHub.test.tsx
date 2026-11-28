@@ -197,7 +197,7 @@ describe('ChallengesHub & Challenge Info Modal (UI-S2-05)', () => {
     expect(screen.getByRole('button', { name: /All Challenges/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Available/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Enrolled/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Ended/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ended/i })).not.toBeInTheDocument();
 
     // Verify challenge cards rendered
     expect(await screen.findByText('30-Day Cardio Blast')).toBeInTheDocument();
