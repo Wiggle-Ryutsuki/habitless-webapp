@@ -681,7 +681,6 @@ export const ProgramBuilder: React.FC = () => {
                   <th style={{ padding: '12px 16px', fontWeight: 700 }}>Duration</th>
                   <th style={{ padding: '12px 16px', fontWeight: 700 }}>Activities</th>
                   <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 700 }}>Public Link</th>
                   <th style={{ padding: '12px 16px', fontWeight: 700, textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
@@ -797,43 +796,6 @@ export const ProgramBuilder: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Public Link */}
-                      <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
-                        {isPublished ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <code
-                              style={{
-                                fontSize: '0.75rem',
-                                backgroundColor: 'var(--papaya-whip)',
-                                color: 'var(--walnut)',
-                                padding: '3px 6px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              /challenges/{prog.id}
-                            </code>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyLink(`/challenges/${prog.id}`)}
-                              style={{
-                                backgroundColor: 'transparent',
-                                border: '1px solid var(--walnut)',
-                                color: 'var(--walnut)',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '0.6875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Copy Link
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>—</span>
-                        )}
-                      </td>
-
                       {/* Actions */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
@@ -912,6 +874,43 @@ export const ProgramBuilder: React.FC = () => {
 
                           {isPublished && (
                             <>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyLink(`/challenges/${prog.id}`)}
+                                title="Copy invitation link"
+                                style={{
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid var(--walnut)',
+                                  color: 'var(--walnut)',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px',
+                                  fontWeight: 600,
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                }}
+                              >
+                                <svg
+                                  width="13"
+                                  height="13"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <circle cx="18" cy="5" r="3" />
+                                  <circle cx="6" cy="12" r="3" />
+                                  <circle cx="18" cy="19" r="3" />
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                                </svg>
+                                <span>Copy Link</span>
+                              </button>
                               <button
                                 type="button"
                                 disabled={unpublishingId === prog.id}

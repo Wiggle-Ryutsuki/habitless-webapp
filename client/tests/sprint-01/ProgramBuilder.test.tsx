@@ -360,7 +360,7 @@ describe('Program Builder Component (UI-07)', () => {
     render(<ProgramBuilder />);
 
     await waitFor(() => {
-      expect(screen.getByText('/challenges/1')).toBeInTheDocument();
+      expect(screen.getByText('Copy Link')).toBeInTheDocument();
     });
 
     const copyBtn = screen.getByText('Copy Link');
